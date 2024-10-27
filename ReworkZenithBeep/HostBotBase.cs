@@ -10,6 +10,7 @@ using ReworkZenithBeep.Module.Music;
 using ReworkZenithBeep.Module.RolesGet;
 using ReworkZenithBeep.Module.Utils;
 using ReworkZenithBeep.Services;
+using ReworkZenithBeep.Settings;
 
 namespace ReworkZenithBeep
 {
@@ -34,7 +35,9 @@ namespace ReworkZenithBeep
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            
+            var _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
+
+
             var slash = _discordClient
                 .UseSlashCommands(new SlashCommandsConfiguration
                 {
@@ -53,7 +56,11 @@ namespace ReworkZenithBeep
                 });
 
             // Next command Register
-            next.RegisterCommands<UtilityNextCommand>();
+            if (_botConfig.NODB_MODE != true)
+            {
+                next.RegisterCommands<UtilityNextCommand>();
+            }
+            
             next.RegisterCommands<MusicNextCommand>();
 
             await _discordClient.ConnectAsync().ConfigureAwait(false);

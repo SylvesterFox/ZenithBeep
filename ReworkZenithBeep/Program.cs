@@ -26,9 +26,13 @@ namespace ReworkZenithBeep
             _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
 
             var builder = new HostApplicationBuilder();
-            string tokendb = "server=localhost;database=Zenith;User=root;Password=8342003";
-            builder.Services.AddDbContextFactory<BotContext>(o => o.UseMySql(tokendb, ServerVersion.AutoDetect(tokendb), x =>
+            if (_botConfig.NODB_MODE != true) {
+                string tokendb = "server=localhost;database=Zenith;User=root;Password=8342003";
+                builder.Services.AddDbContextFactory<BotContext>(o => o.UseMySql(tokendb, ServerVersion.AutoDetect(tokendb), x =>
                     x.MigrationsAssembly("ReworkZenithBeep.Data.Migrations")));
+                builder.Services.AddSingleton<DataBot>();
+            }
+           
             builder.Services.AddHostedService<HostBotBase>();
             builder.Services.AddSingleton<DiscordClient>();
             builder.Services.AddSingleton(new DiscordConfiguration
@@ -39,7 +43,6 @@ namespace ReworkZenithBeep
                 Intents = DiscordIntents.All
             });
             builder.Services.AddLavalink();
-            builder.Services.AddSingleton<DataBot>();
             builder.Services.ConfigureLavalink(options =>
             {
                 options.Passphrase = _botConfig.LAVALINK_PASSWORD;
@@ -55,7 +58,7 @@ namespace ReworkZenithBeep
             #if DEBUG
             .SetMinimumLevel(LogLevel.Trace)
             #else            
-            .SetMinmumLevel(LogLevel.Information)
+            .SetMinimumLevel(LogLevel.Information)
             #endif
             );
             
