@@ -26,6 +26,12 @@ namespace ReworkZenithBeep.Module.RolesGet
             var id = Convert.ToUInt64(messageId);
             await _roles.CreateRolesCommand(context, channel, discordRole, id, emoji);
         }
-        
+
+        [SlashCommand("roleselector-delrole", "Delete role selector")]
+        public async Task CommandDeleteRoleSelect(InteractionContext context, [Option("KeyId", "Key role selector")] long keyRole)
+        {
+            var id = Convert.ToInt32(keyRole);
+            await _roles.DeleteRolesCommand(context, id);
+        }
     }
 }

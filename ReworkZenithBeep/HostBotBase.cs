@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ReworkZenithBeep.Data;
+using ReworkZenithBeep.Handler;
 using ReworkZenithBeep.Module.Music;
 using ReworkZenithBeep.Module.RolesGet;
 using ReworkZenithBeep.Module.Utils;
@@ -26,7 +27,7 @@ namespace ReworkZenithBeep
         private readonly DiscordClient _discordClient;
         private readonly BotConfig _botConfig;
 
-        public HostBotBase(IServiceProvider serviceProvider, DiscordClient discord)
+        public HostBotBase(IServiceProvider serviceProvider, DiscordClient discord, DataBot dataBot)
         {
             ArgumentNullException.ThrowIfNull(serviceProvider);
             ArgumentNullException.ThrowIfNull(discord);
@@ -61,24 +62,37 @@ namespace ReworkZenithBeep
                     Services = _serviceProvider
                 });
 
-            
+
+            // Prefix command
+            next.RegisterCommands<UtilityNextCommand>();
+            // Slash command
+
+
+            // Using database
             if (_botConfig.NODB_MODE != true)
             {
-                next.RegisterCommands<UtilityNextCommand>();
-
+                // Command prefix
+                next.RegisterCommands<UtilityForDataNextCommand>();
+                // Slash command
                 slash.RegisterCommands<UtilitySlashCommand>();
                 slash.RegisterCommands<RoleSelectorsSlash>();
             }
 
+            // Audio command
             if (_botConfig.AUDIOSERICES != true)
             {
-                slash.RegisterCommands<MusicSlashCommand>();
+                // Comannd prefix
                 next.RegisterCommands<MusicNextCommand>();
+                // Slash command
+                slash.RegisterCommands<MusicSlashCommand>();
+                
             }
 
             await _discordClient.ConnectAsync().ConfigureAwait(false);
 
             var readyTaskCompletionSource = new TaskCompletionSource();
+
+            
 
             async Task SetResult(DiscordClient client, ReadyEventArgs eventArgs)
             {
@@ -89,11 +103,21 @@ namespace ReworkZenithBeep
                 
             }
 
+            // Events
+            var roleSelectorHandler = new RoleSelectorsHandler(_serviceProvider);
+
+            _discordClient.MessageReactionAdded += roleSelectorHandler.MessageReactionAdd;
+            _discordClient.MessageReactionRemoved += roleSelectorHandler.MessageReactionRemove;
             _discordClient.Ready += SetResult;
+
             await readyTaskCompletionSource.Task.ConfigureAwait(false);
             _discordClient.Ready -= SetResult;
 
+            
+
             await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken).ConfigureAwait(false);
         }
+
+        
     }
 }

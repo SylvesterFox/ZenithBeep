@@ -1,6 +1,5 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using ReworkZenithBeep.Data;
 using ReworkZenithBeep.Settings;
 
 
@@ -9,19 +8,13 @@ namespace ReworkZenithBeep.Module.Utils
     public partial class UtilityCommand
     {
         
-        private readonly DataBot _dbContext;
         private static UtilityCommand instance;
 
-        public UtilityCommand(DataBot dbContext)
-        {
-            this._dbContext = dbContext;
-        }
-
-        public static UtilityCommand GetInstance(DataBot dbContext)
+        public static UtilityCommand GetInstance()
         {
             if (instance == null)
             {
-                instance = new UtilityCommand(dbContext);
+                instance = new UtilityCommand();
             }
             return instance;
         }
@@ -48,17 +41,6 @@ namespace ReworkZenithBeep.Module.Utils
             await message.Result.DeleteAsync();
         }
 
-        public async Task PrefixCommand(CommonContext ctx, string? prefix = null)
-        {
-            await ctx.DeferAsync();
-            var responsDb = await _dbContext.GetOrCreateGuild(ctx.Guild);
-            if (prefix == null)
-            {
-                await ctx.RespondTextAsync($"The prefix of this guild is {responsDb.Prefix}");
-                return;
-            }
 
-            await _dbContext.UpdatePrefix(ctx.Guild, prefix);
-        }
     }
 }

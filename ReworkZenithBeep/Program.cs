@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ReworkZenithBeep.Data;
+using ReworkZenithBeep.Handler;
 using ReworkZenithBeep.Services;
 using ReworkZenithBeep.Settings;
 
@@ -15,23 +16,29 @@ namespace ReworkZenithBeep
         public static BotConfig _botConfig;
         static void Main(string[] args)
         {
+            var dataConfig = DataConfig.InitDataConfig();
 
-
-            if (!Settings.SettingsManager.Instance.LoadConfiguration())
+            if (!SettingsManager.Instance.LoadConfiguration())
             {
                 Console.WriteLine("Configuration is not loaded\nPress any key to exit...");
                 return;
             }
 
-            _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
+            if (dataConfig == null)
+            {
+                Console.WriteLine("Data configuration is not loaded");
+                return;
+            }
+
+            _botConfig = SettingsManager.Instance.LoadedConfig;
 
             var builder = new HostApplicationBuilder();
-            string tokendb = "server=localhost;database=Zenith;User=root;Password=dragondev";
-            builder.Services.AddDbContextFactory<BotContext>(o => o.UseMySql(tokendb, ServerVersion.AutoDetect(tokendb), x =>
-                x.MigrationsAssembly("ReworkZenithBeep.Data.Migrations")));
-            builder.Services.AddSingleton<DataBot>();
+            
             if (_botConfig.NODB_MODE != true) {
                 
+                builder.Services.AddDbContextFactory<BotContext>(o => o.UseNpgsql(dataConfig, x =>
+                    x.MigrationsAssembly("ReworkZenithBeep.Data.Migrations")));
+                builder.Services.AddSingleton<DataBot>();
             }
            
             builder.Services.AddHostedService<HostBotBase>();
@@ -57,7 +64,8 @@ namespace ReworkZenithBeep
             }
             
             builder.Services.AddSingleton<PaginationService>();
-            
+            builder.Services.AddSingleton<RoleSelectorsHandler>();
+
 
             builder.Services.AddLogging(s => s.AddConsole()
             #if DEBUG

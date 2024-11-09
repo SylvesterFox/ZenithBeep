@@ -5,6 +5,7 @@ using DSharpPlus.SlashCommands;
 using ReworkZenithBeep.Data;
 using ReworkZenithBeep.MessageEmbeds;
 using ReworkZenithBeep.Settings;
+using System.Data;
 
 namespace ReworkZenithBeep.Module.RolesGet
 {
@@ -64,13 +65,14 @@ namespace ReworkZenithBeep.Module.RolesGet
             var _emoji = _GetEmote(ctx, emoji); 
             if (_emoji != null)
             {
-                bool success = await _dbContext.CreateRolesSelector(ctx.Guild, _msg.Id, role.Id, _channel.Id, _emoji.Name);
+                bool success = await _dbContext.CreateRolesSelector(ctx.Guild, _msg.Id, role.Id, _channel.Id, _emoji);
                 if (success == false)
                 {
                     var embedError = EmbedTempalte.ErrorEmbed("This object already exists! >~<", "DataObjectExists");
                     await ctx.CreateResponseAsync(embedError);
                     return;
                 }
+
 
                 await _msg.CreateReactionAsync(_emoji);
                 var embedSuccess = new EmbedTempalte.DetailedEmbedContent {
@@ -82,6 +84,47 @@ namespace ReworkZenithBeep.Module.RolesGet
                 await ctx.CreateResponseAsync(embed);
             }
 
+
+        }
+
+        public async Task DeleteRolesCommand(InteractionContext ctx, int keyid)
+        {
+            var dataRole = await _dbContext.GetKeyRoles(ctx.Guild, keyid);
+
+            if (dataRole == null)
+            {
+                await ctx.CreateResponseAsync("Not has been deleted!");
+                return;
+            }
+
+            var _msg = await ctx.Channel.GetMessageAsync(dataRole.messageId);
+
+            if (_msg == null) {
+                await ctx.CreateResponseAsync("Not found message!");
+                return; 
+            }
+
+
+            var _emoji = _GetEmote(ctx, dataRole.emojiButton);
+            if (_emoji != null)
+            {
+                bool success = await _dbContext.DeleteRoleAutoMod(ctx.Guild, keyid);
+                if (success == false)
+                {
+                    await ctx.CreateResponseAsync("Not has been deleted!");
+                    return;
+                }
+
+                await _msg.DeleteReactionsEmojiAsync(_emoji);
+                var embedSuccess = new EmbedTempalte.DetailedEmbedContent
+                {
+                    Color = new DiscordColor("#72f963"),
+                    Description = $"AutoMod role delete!",
+                    Title = "Success!"
+                };
+                var embed = EmbedTempalte.DetaliedEmbed(embedSuccess);
+                await ctx.CreateResponseAsync(embed);
+            }
         }
     }
 }
