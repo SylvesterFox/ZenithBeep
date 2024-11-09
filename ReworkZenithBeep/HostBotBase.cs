@@ -4,13 +4,16 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
 using Lavalink4NET;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ReworkZenithBeep.Data;
 using ReworkZenithBeep.Module.Music;
 using ReworkZenithBeep.Module.RolesGet;
 using ReworkZenithBeep.Module.Utils;
 using ReworkZenithBeep.Services;
 using ReworkZenithBeep.Settings;
+
 
 namespace ReworkZenithBeep
 {
@@ -21,6 +24,7 @@ namespace ReworkZenithBeep
 
         private readonly IServiceProvider _serviceProvider;
         private readonly DiscordClient _discordClient;
+        private readonly BotConfig _botConfig;
 
         public HostBotBase(IServiceProvider serviceProvider, DiscordClient discord)
         {
@@ -29,13 +33,18 @@ namespace ReworkZenithBeep
 
             this._serviceProvider = serviceProvider;
             this._discordClient = discord;
-            AudioService = serviceProvider.GetRequiredService<IAudioService>();
+            _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
+            if (_botConfig.AUDIOSERICES != true)
+            {
+                AudioService = serviceProvider.GetRequiredService<IAudioService>();
+            }
+            
             Pagination = serviceProvider.GetRequiredService<PaginationService>();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
+            
 
 
             var slash = _discordClient
@@ -43,10 +52,7 @@ namespace ReworkZenithBeep
                 {
                     Services = _serviceProvider
                 });
-            // Slash commands register
-            slash.RegisterCommands<UtilitySlashCommand>();
-            slash.RegisterCommands<MusicSlashCommand>();
-            slash.RegisterCommands<RoleSelectorsSlash>();
+            
 
             var next = _discordClient
                 .UseCommandsNext(new CommandsNextConfiguration
@@ -55,23 +61,32 @@ namespace ReworkZenithBeep
                     Services = _serviceProvider
                 });
 
-            // Next command Register
+            
             if (_botConfig.NODB_MODE != true)
             {
                 next.RegisterCommands<UtilityNextCommand>();
+
+                slash.RegisterCommands<UtilitySlashCommand>();
+                slash.RegisterCommands<RoleSelectorsSlash>();
             }
-            
-            next.RegisterCommands<MusicNextCommand>();
+
+            if (_botConfig.AUDIOSERICES != true)
+            {
+                slash.RegisterCommands<MusicSlashCommand>();
+                next.RegisterCommands<MusicNextCommand>();
+            }
 
             await _discordClient.ConnectAsync().ConfigureAwait(false);
 
             var readyTaskCompletionSource = new TaskCompletionSource();
 
-            Task SetResult(DiscordClient client, ReadyEventArgs eventArgs)
+            async Task SetResult(DiscordClient client, ReadyEventArgs eventArgs)
             {
-                readyTaskCompletionSource.TrySetResult();
+                var db = _serviceProvider.GetRequiredService<BotContext>();
+                await db.Database.MigrateAsync();
+        
                 Console.WriteLine("Ready RAWR!");
-                return Task.CompletedTask;
+                
             }
 
             _discordClient.Ready += SetResult;

@@ -34,7 +34,7 @@ namespace ReworkZenithBeep.Data
         public BotContext CreateDbContext(string[] atgs)
         {
             var optionsBuilder = new DbContextOptionsBuilder<BotContext>();
-            string tokendb = "server=localhost;database=Zenith;User=root;Password=8342003";
+            string tokendb = "server=localhost;database=Zenith;User=root;Password=dragondev";
             optionsBuilder.UseMySql(tokendb, ServerVersion.AutoDetect(tokendb), x => x.MigrationsAssembly("ReworkZenithBeep.Data.Migrations"));
             return new BotContext(optionsBuilder.Options);
         }

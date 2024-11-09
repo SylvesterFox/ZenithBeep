@@ -3,7 +3,7 @@
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using ReworkZenithBeep.Data;
-using ReworkZenithBeep.Settings;
+
 
 namespace ReworkZenithBeep.Module.RolesGet
 {

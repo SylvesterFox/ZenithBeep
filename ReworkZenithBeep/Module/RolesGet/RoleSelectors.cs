@@ -1,7 +1,5 @@
 ﻿
 
-using DSharpPlus;
-using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using ReworkZenithBeep.Data;

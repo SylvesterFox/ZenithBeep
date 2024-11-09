@@ -26,11 +26,12 @@ namespace ReworkZenithBeep
             _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
 
             var builder = new HostApplicationBuilder();
+            string tokendb = "server=localhost;database=Zenith;User=root;Password=dragondev";
+            builder.Services.AddDbContextFactory<BotContext>(o => o.UseMySql(tokendb, ServerVersion.AutoDetect(tokendb), x =>
+                x.MigrationsAssembly("ReworkZenithBeep.Data.Migrations")));
+            builder.Services.AddSingleton<DataBot>();
             if (_botConfig.NODB_MODE != true) {
-                string tokendb = "server=localhost;database=Zenith;User=root;Password=8342003";
-                builder.Services.AddDbContextFactory<BotContext>(o => o.UseMySql(tokendb, ServerVersion.AutoDetect(tokendb), x =>
-                    x.MigrationsAssembly("ReworkZenithBeep.Data.Migrations")));
-                builder.Services.AddSingleton<DataBot>();
+                
             }
            
             builder.Services.AddHostedService<HostBotBase>();
@@ -42,14 +43,18 @@ namespace ReworkZenithBeep
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.All
             });
-            builder.Services.AddLavalink();
-            builder.Services.ConfigureLavalink(options =>
+
+            if (_botConfig.AUDIOSERICES != true)
             {
-                options.Passphrase = _botConfig.LAVALINK_PASSWORD;
-                options.BaseAddress = new Uri(_botConfig.LAVALINK_ADDRES);
-                options.WebSocketUri = new Uri(_botConfig.LAVALINK_WEBSOCKET);
-                options.ReadyTimeout = TimeSpan.FromSeconds(10);
-            });
+                builder.Services.AddLavalink();
+                builder.Services.ConfigureLavalink(options =>
+                {
+                    options.Passphrase = _botConfig.LAVALINK_PASSWORD;
+                    options.BaseAddress = new Uri(_botConfig.LAVALINK_ADDRES);
+                    options.WebSocketUri = new Uri(_botConfig.LAVALINK_WEBSOCKET);
+                    options.ReadyTimeout = TimeSpan.FromSeconds(10);
+                });
+            }
             
             builder.Services.AddSingleton<PaginationService>();
             
