@@ -9,5 +9,6 @@ namespace ReworkZenithBeep.Data.Models.items
         public string Prefix { get; set; } = "!";
 
         public ICollection<ItemRolesSelector> Roles { get; } = new List<ItemRolesSelector>();
+        public ICollection<ItemRoomersLobby> Roomers { get; } = new List<ItemRoomersLobby>();
     }
 }

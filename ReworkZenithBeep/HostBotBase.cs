@@ -46,8 +46,6 @@ namespace ReworkZenithBeep
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             
-
-
             var slash = _discordClient
                 .UseSlashCommands(new SlashCommandsConfiguration
                 {
