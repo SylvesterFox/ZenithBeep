@@ -10,12 +10,6 @@ namespace ReworkZenithBeep.Settings
 
         public string LOGS { get; set; } = "info";
 
-        public string POSTGRES_HOST { get; set; } = "localhost";
-        public string POSTGRES_DB { get; set; } = "ZenitBeep";
-        public string POSTGRES_PORT { get; set; } = "5432";
-        public string POSTGRES_USER { get; set; } = "postgres";
-        public string POSTGRES_PASSWORD { get; set; } = string.Empty;
-
         public bool AUDIOSERICES { get; set; } = false;
         public bool NODB_MODE { get; set; } = false;
     }

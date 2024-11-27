@@ -5,7 +5,6 @@ using DSharpPlus.SlashCommands;
 using ReworkZenithBeep.Data;
 using ReworkZenithBeep.MessageEmbeds;
 using ReworkZenithBeep.Settings;
-using System.Data;
 
 namespace ReworkZenithBeep.Module.RolesGet
 {
@@ -47,7 +46,7 @@ namespace ReworkZenithBeep.Module.RolesGet
 
         public async Task CreateRolesCommand(InteractionContext ctx, DiscordChannel? channel, DiscordRole role, ulong msgId , string emoji)
         {
-            /*await ctx.DeferAsync(true);*/
+            await ctx.DeferAsync(true);
             DiscordMessage? _msg = await ctx.Channel.GetMessageAsync(msgId);
             DiscordChannel _channel = channel ?? ctx.Channel;
             if (channel != null)
@@ -89,6 +88,7 @@ namespace ReworkZenithBeep.Module.RolesGet
 
         public async Task DeleteRolesCommand(InteractionContext ctx, int keyid)
         {
+            await ctx.DeferAsync(true);
             var dataRole = await _dbContext.GetKeyRoles(ctx.Guild, keyid);
 
             if (dataRole == null)
