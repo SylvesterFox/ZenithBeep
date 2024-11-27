@@ -120,15 +120,15 @@ namespace ReworkZenithBeep
                 // Slash command
                 slash.RegisterCommands<UtilitySlashCommand>();
                 slash.RegisterCommands<RoleSelectorsSlash>();
-            }
+                // Events
+                var roleSelectorHandler = new RoleSelectorsHandler(_serviceProvider);
+                var voiceRoomsHandler = new VoiceRoomsHandler();
 
-            // Events
-            var roleSelectorHandler = new RoleSelectorsHandler(_serviceProvider);
-            var voiceRoomsHandler = new VoiceRoomsHandler();
+                _discordClient.MessageReactionAdded += roleSelectorHandler.MessageReactionAdd;
+                _discordClient.MessageReactionRemoved += roleSelectorHandler.MessageReactionRemove;
+                _discordClient.VoiceStateUpdated += VoiceRoomsHandler.OnRoomStateUpdated;
+            }  
 
-            _discordClient.MessageReactionAdded += roleSelectorHandler.MessageReactionAdd;
-            _discordClient.MessageReactionRemoved += roleSelectorHandler.MessageReactionRemove;
-            _discordClient.VoiceStateUpdated += VoiceRoomsHandler.voiceRoomsHandler;
 
             _discordClient.Ready += SetResult;
 

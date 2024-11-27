@@ -6,19 +6,22 @@ namespace ReworkZenithBeep.Handler
 {
     public class VoiceRoomsHandler
     {
-        public static async Task voiceRoomsHandler(DiscordClient sender, VoiceStateUpdateEventArgs e)
+        public static async Task OnRoomStateUpdated(DiscordClient sender, VoiceStateUpdateEventArgs e)
         {
-            if (e.Before == null && e.After != null) // User joined a voice channel
+            // Check if the user joined a voice channel
+            if (e.Before?.Channel == null && e.After?.Channel != null)
             {
-                Console.WriteLine($"{e.User.Username} joined voice channel {e.After.Channel.Name}");
+                Console.WriteLine($"{e.User.Username} joined the voice channel {e.After.Channel.Name}");
             }
-            else if (e.Before != null && e.After == null) // User left a voice channel
+            // Check if the user left a voice channel
+            else if (e.Before?.Channel != null && e.After?.Channel == null)
             {
-                Console.WriteLine($"{e.User.Username} left voice channel {e.Before.Channel.Name}");
+                Console.WriteLine($"{e.User.Username} left the voice channel {e.Before.Channel.Name}");
             }
-            else if (e.Before?.Channel != e.After?.Channel) // User switched channels
+            // Check if the user switched voice channels
+            else if (e.Before?.Channel != null && e.After?.Channel != null && e.Before.Channel != e.After.Channel)
             {
-                Console.WriteLine($"{e.User.Username} moved from {e.Before?.Channel?.Name} to {e.After?.Channel?.Name}");
+                Console.WriteLine($"{e.User.Username} switched from {e.Before.Channel.Name} to {e.After.Channel.Name}");
             }
 
             await Task.CompletedTask;
