@@ -8,9 +8,9 @@ namespace ReworkZenithBeep.Data
     public class DataBot
     {
         private readonly IDbContextFactory<BotContext> _contextFactory;
-        public DataBot(IDbContextFactory<BotContext> contextFactory)
+        public DataBot(IDbContextFactory<BotContext> ContextFactory)
         {
-            _contextFactory = contextFactory;
+            _contextFactory = ContextFactory;
         }
 
         /// <summary>
@@ -36,6 +36,24 @@ namespace ReworkZenithBeep.Data
             } else itemGuild = await query.FirstAsync();
 
             return itemGuild;
+        }
+
+        public async Task<ItemUser> GetOrCreateUser(DiscordUser user)
+        {
+            ItemUser itemUser;
+            using var context = _contextFactory.CreateDbContext();
+            var query = context.User.Where(x=> x.Id == user.Id);
+
+            if (await query.AnyAsync() == false)
+            {
+                itemUser = new ItemUser()
+                {
+                    Id = user.Id,
+                    UserName = user.Username,
+                };
+            }
+            else itemUser = await query.FirstAsync();
+            return itemUser;
         }
 
         /// <summary>

@@ -1,14 +1,14 @@
 ﻿
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 
 namespace ReworkZenithBeep.Data.Models.items
 {
     public class ItemRoomersLobby
     {
-        [Key]
-        public ulong keyId {  get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public ulong Id { get; set; }
         public ItemGuild Guild { get; set; }
         public ulong LobbyId { get; set; }

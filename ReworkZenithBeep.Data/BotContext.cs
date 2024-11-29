@@ -32,7 +32,7 @@ namespace ReworkZenithBeep.Data
             modelBuilder.Entity<ItemGuild>()
                 .HasMany(e => e.Roomers)
                 .WithOne(e => e.Guild)
-                .HasForeignKey(e => e.LobbyId)
+                .HasForeignKey(e => e.Id)
                 .IsRequired();
 
             modelBuilder.Entity<ItemRolesSelector>()
@@ -41,11 +41,6 @@ namespace ReworkZenithBeep.Data
                 .HasForeignKey(e => e.Id)
                 .IsRequired();
 
-            modelBuilder.Entity<ItemRoomersLobby>()
-                .HasOne(e => e.Guild)
-                .WithMany(e => e.Roomers)
-                .HasForeignKey(e => e.LobbyId)
-                .IsRequired();
 
             modelBuilder.Entity<ItemsRoooms>()
                 .HasKey(e => e.userId);
@@ -53,11 +48,7 @@ namespace ReworkZenithBeep.Data
             modelBuilder.Entity<ItemsTempRoom>()
                 .HasKey(e => e.ownerUser);
 
-            modelBuilder.Entity<ItemRoomersLobby>()
-                .HasMany(e => e.itemsRoooms)
-                .WithOne(e => e.ItemRoomersLobby)
-                .HasForeignKey(e => e.LobbyId)
-                .IsRequired();
+ 
         }
     }
 
