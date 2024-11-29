@@ -11,6 +11,7 @@ using ReworkZenithBeep.Data;
 using ReworkZenithBeep.Handler;
 using ReworkZenithBeep.Module.Music;
 using ReworkZenithBeep.Module.RolesGet;
+using ReworkZenithBeep.Module.Rooms;
 using ReworkZenithBeep.Module.Utils;
 using ReworkZenithBeep.Services;
 using ReworkZenithBeep.Settings;
@@ -120,6 +121,7 @@ namespace ReworkZenithBeep
                 // Slash command
                 slash.RegisterCommands<UtilitySlashCommand>();
                 slash.RegisterCommands<RoleSelectorsSlash>();
+                slash.RegisterCommands<RoomsSelectorsSlash>();
                 // Events
                 var roleSelectorHandler = new RoleSelectorsHandler(_serviceProvider);
                 var voiceRoomsHandler = new VoiceRoomsHandler();

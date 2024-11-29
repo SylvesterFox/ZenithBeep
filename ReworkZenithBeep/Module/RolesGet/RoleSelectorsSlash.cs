@@ -16,6 +16,7 @@ namespace ReworkZenithBeep.Module.RolesGet
         }
 
         [SlashCommand("roleselector-create", "Create role selector")]
+        [SlashCommandPermissions(DSharpPlus.Permissions.ManageRoles)]
         public async Task CommandCreateRoleSelect(
             InteractionContext context,
             [Option("Roles", "Select role")] DiscordRole discordRole, 
@@ -28,6 +29,7 @@ namespace ReworkZenithBeep.Module.RolesGet
         }
 
         [SlashCommand("roleselector-delrole", "Delete role selector")]
+        [SlashCommandPermissions(DSharpPlus.Permissions.ManageRoles)]
         public async Task CommandDeleteRoleSelect(InteractionContext context, [Option("KeyId", "Key role selector")] long keyRole)
         {
             var id = Convert.ToInt32(keyRole);

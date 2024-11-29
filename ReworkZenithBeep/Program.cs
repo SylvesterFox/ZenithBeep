@@ -39,6 +39,7 @@ namespace ReworkZenithBeep
                 builder.Services.AddDbContextFactory<BotContext>(o => o.UseNpgsql(dataConfig, x =>
                     x.MigrationsAssembly("ReworkZenithBeep.Data.Migrations")));
                 builder.Services.AddSingleton<DataBot>();
+                builder.Services.AddSingleton<RepositoryRooms>();
             }
            
             builder.Services.AddHostedService<HostBotBase>();
