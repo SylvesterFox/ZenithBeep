@@ -46,12 +46,82 @@ namespace ReworkZenithBeep.Data
             return false;
         }
 
-        public async Task<ItemRoomersLobby?> GetLobbyData(DiscordGuild guild)
+        public async Task<ItemRoomersLobby?> GetLobbyDataGuild(DiscordGuild guild)
         {
             using var context = _contextFactory.CreateDbContext();
             var query = context.RoomersLobbies.Where(x => x.Id == guild.Id);
             return await query.FirstOrDefaultAsync();
         }
-        
+
+        public async Task<ItemRoomersLobby?> GetLobbyDataChannel(ulong channelId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var query = context.RoomersLobbies.Where(x => x.LobbyId == channelId);
+            return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<ItemRooomsSettings> GetOrCreateSettingsRoom(DiscordUser user, string nameChannel)
+        {
+            ItemUser userData = await GetOrCreateUser(user);
+            ItemRooomsSettings settings;
+            using var context = _contextFactory.CreateDbContext();
+            var query = context.ItemsRooms.Where(x => x.Id == userData.Id);
+            if (!await query.AnyAsync())
+            {
+                settings = new ItemRooomsSettings()
+                {
+                    Id = userData.Id,
+                    nameChannel = nameChannel,
+                };
+                context.Add(settings);
+                await context.SaveChangesAsync();
+                return settings;
+            } else {
+                settings = await query.FirstAsync();
+            }
+
+            return settings;
+        }
+
+        public async Task<bool> CreateTempRoom(DiscordUser user, DiscordChannel channel)
+        {
+            ItemUser userData =  await GetOrCreateUser(user);
+            using var context = _contextFactory.CreateDbContext();
+            var query = context.ItemsTempRooms.Where(x => x.roomid == channel.Id);
+            if (!await query.AnyAsync())
+            {
+                var TempRoom = new ItemTempRoom()
+                {
+                    Id = userData.Id,
+                    roomid = channel.Id,
+                };
+                context.Add(TempRoom);
+                await context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> TempRoomAny(DiscordChannel channel)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var query = context.ItemsTempRooms.Where(x => x.roomid == channel.Id);
+            return await query.AnyAsync();
+        }
+
+
+        public async Task<bool> TryDeleteTempRoom(DiscordChannel channel)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var query = context.ItemsTempRooms.Where(x => x.roomid == channel.Id);
+            if (!await query.AnyAsync())
+            {
+                return false;
+            }
+
+            context.ItemsTempRooms.Remove(query.First());
+            await context.SaveChangesAsync();
+            return true;
+        }
     }
 }

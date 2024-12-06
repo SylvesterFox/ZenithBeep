@@ -124,11 +124,11 @@ namespace ReworkZenithBeep
                 slash.RegisterCommands<RoomsSelectorsSlash>();
                 // Events
                 var roleSelectorHandler = new RoleSelectorsHandler(_serviceProvider);
-                var voiceRoomsHandler = new VoiceRoomsHandler();
+                var voiceRoomsHandler = new VoiceRoomsHandler(_serviceProvider);
 
                 _discordClient.MessageReactionAdded += roleSelectorHandler.MessageReactionAdd;
                 _discordClient.MessageReactionRemoved += roleSelectorHandler.MessageReactionRemove;
-                _discordClient.VoiceStateUpdated += VoiceRoomsHandler.OnRoomStateUpdated;
+                _discordClient.VoiceStateUpdated += voiceRoomsHandler.OnRoomStateUpdated;
             }  
 
 

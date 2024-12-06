@@ -1,15 +1,14 @@
 ﻿
 
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ReworkZenithBeep.Data.Models.items
 {
-    public class ItemsTempRoom
+    public class ItemTempRoom
     {
-        [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public ulong ownerUser { get; set; }
+        public ulong Id { get; set; }
+        public ItemUser User { get; set; }
         public ulong roomid { get; set; }
     }
 }

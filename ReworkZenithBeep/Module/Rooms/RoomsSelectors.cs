@@ -31,7 +31,7 @@ namespace ReworkZenithBeep.Module.Rooms
         {
             await ctx.DeferAsync(true);
 
-            var lobbydata = await _dbContext.GetLobbyData(ctx.Guild);
+            var lobbydata = await _dbContext.GetLobbyDataGuild(ctx.Guild);
             if (lobbydata != null) {
                 var embedErrorCreate = EmbedTempalte.ErrorEmbed("Lobby already exists! >~<`", "LobbyNotCreate");
                 await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embedErrorCreate));
@@ -68,7 +68,7 @@ namespace ReworkZenithBeep.Module.Rooms
         public async Task DeleteLobbyCommand(InteractionContext ctx)
         {
             await ctx.DeferAsync(true);
-            ItemRoomersLobby? data = await _dbContext.GetLobbyData(ctx.Guild);
+            ItemRoomersLobby? data = await _dbContext.GetLobbyDataGuild(ctx.Guild);
             if (data == null)
             {
                 var embedErrorDel = EmbedTempalte.ErrorEmbed("Lobby channel does not exist. >~<`", "LobbyNotDelete");

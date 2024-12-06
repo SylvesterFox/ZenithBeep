@@ -11,7 +11,7 @@ using ReworkZenithBeep.Data;
 namespace ReworkZenithBeep.Data.Migrations.Migrations
 {
     [DbContext(typeof(BotContext))]
-    [Migration("20241129204401_Updatexyu")]
+    [Migration("20241206141250_Updatexyu")]
     partial class Updatexyu
     {
         /// <inheritdoc />
@@ -90,6 +90,36 @@ namespace ReworkZenithBeep.Data.Migrations.Migrations
                     b.ToTable("RoomersLobbies");
                 });
 
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemRooomsSettings", b =>
+                {
+                    b.Property<decimal>("Id")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<int>("limitChannel")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("nameChannel")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ItemsRooms");
+                });
+
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemTempRoom", b =>
+                {
+                    b.Property<decimal>("Id")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("roomid")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ItemsTempRooms");
+                });
+
             modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemUser", b =>
                 {
                     b.Property<decimal>("Id")
@@ -107,45 +137,6 @@ namespace ReworkZenithBeep.Data.Migrations.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemsRoooms", b =>
-                {
-                    b.Property<decimal>("userId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("ItemRoomersLobbyId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("LobbyId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<int>("limitChannel")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("nameChannel")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("userId");
-
-                    b.HasIndex("ItemRoomersLobbyId");
-
-                    b.ToTable("ItemsRooms");
-                });
-
-            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemsTempRoom", b =>
-                {
-                    b.Property<decimal>("ownerUser")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("roomid")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.HasKey("ownerUser");
-
-                    b.ToTable("ItemsTempRooms");
-                });
-
             modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemRolesSelector", b =>
                 {
                     b.HasOne("ReworkZenithBeep.Data.Models.items.ItemGuild", "Guild")
@@ -160,7 +151,7 @@ namespace ReworkZenithBeep.Data.Migrations.Migrations
             modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemRoomersLobby", b =>
                 {
                     b.HasOne("ReworkZenithBeep.Data.Models.items.ItemGuild", "Guild")
-                        .WithMany("Roomers")
+                        .WithMany("RoomersLobby")
                         .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -168,27 +159,40 @@ namespace ReworkZenithBeep.Data.Migrations.Migrations
                     b.Navigation("Guild");
                 });
 
-            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemsRoooms", b =>
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemRooomsSettings", b =>
                 {
-                    b.HasOne("ReworkZenithBeep.Data.Models.items.ItemRoomersLobby", "ItemRoomersLobby")
-                        .WithMany("itemsRoooms")
-                        .HasForeignKey("ItemRoomersLobbyId")
+                    b.HasOne("ReworkZenithBeep.Data.Models.items.ItemUser", "User")
+                        .WithMany("Roomers")
+                        .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ItemRoomersLobby");
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemTempRoom", b =>
+                {
+                    b.HasOne("ReworkZenithBeep.Data.Models.items.ItemUser", "User")
+                        .WithMany("itemTempRooms")
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemGuild", b =>
                 {
                     b.Navigation("Roles");
 
-                    b.Navigation("Roomers");
+                    b.Navigation("RoomersLobby");
                 });
 
-            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemRoomersLobby", b =>
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemUser", b =>
                 {
-                    b.Navigation("itemsRoooms");
+                    b.Navigation("Roomers");
+
+                    b.Navigation("itemTempRooms");
                 });
 #pragma warning restore 612, 618
         }

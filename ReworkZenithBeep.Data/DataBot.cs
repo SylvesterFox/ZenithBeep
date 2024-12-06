@@ -51,6 +51,8 @@ namespace ReworkZenithBeep.Data
                     Id = user.Id,
                     UserName = user.Username,
                 };
+                context.Add(itemUser);
+                await context.SaveChangesAsync();
             }
             else itemUser = await query.FirstAsync();
             return itemUser;
