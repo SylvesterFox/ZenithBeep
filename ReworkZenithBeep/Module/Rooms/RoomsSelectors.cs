@@ -1,5 +1,6 @@
 ﻿
 
+using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using ReworkZenithBeep.Data;
@@ -96,5 +97,37 @@ namespace ReworkZenithBeep.Module.Rooms
             var embed = EmbedTempalte.DetaliedEmbed(embedSuccess);
             await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
         }
+
+        public async Task LockPrivateVoice(InteractionContext ctx)
+        {
+            await ctx.DeferAsync(true);
+            if (ctx.Member.VoiceState != null)
+            {
+                var voice = ctx.Member.VoiceState;
+                var privateVoice = await _dbContext.TempRoomAny(voice.Channel);
+                if (!privateVoice)
+                {
+                    DiscordEmbed embedErrorDel = EmbedTempalte.ErrorEmbed("I couldn't close the voice channel >~<`", "NotLockRoom");
+                    await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embedErrorDel));
+                    return;
+                }
+
+                var overwrite = voice.Channel.PermissionOverwrites.FirstOrDefault(o => o.Id == voice.Guild.EveryoneRole.Id);
+
+                bool isAllowed = overwrite?.Allowed.HasPermission(Permissions.UseVoice) ?? false;
+                bool isDenied = overwrite?.Denied.HasPermission(Permissions.UseVoice) ?? false;
+
+
+                if (isAllowed && !isDenied) {
+                    await voice.Channel.AddOverwriteAsync(voice.Guild.EveryoneRole, deny: Permissions.UseVoice);
+                } else
+                {
+                    await voice.Channel.AddOverwriteAsync(voice.Guild.EveryoneRole, allow: Permissions.UseVoice);
+                }
+                
+
+            }
+        }
+        
     }
 }

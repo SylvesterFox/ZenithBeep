@@ -25,5 +25,11 @@ namespace ReworkZenithBeep.Module.Rooms
         {
             await _roomsSelectors.DeleteLobbyCommand(ctx);
         }
+
+        [SlashCommand("vclock", "Lock and unlock voice channel")]
+        public async Task CommandLockAndUnlockVoice(InteractionContext ctx)
+        {
+            await _roomsSelectors.LockPrivateVoice(ctx);
+        }
     }
 }
