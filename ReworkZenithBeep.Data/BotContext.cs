@@ -53,17 +53,8 @@ namespace ReworkZenithBeep.Data
                 .HasForeignKey(e => e.Id)
                 .IsRequired();
 
-            modelBuilder.Entity<ItemUser>()
-               .HasMany(e => e.itemTempRooms)
-               .WithOne(e => e.User)
-               .HasForeignKey(e => e.Id)
-               .IsRequired();
-
             modelBuilder.Entity<ItemTempRoom>()
-                .HasOne(e => e.User)
-                .WithMany(e => e.itemTempRooms)
-                .HasForeignKey(e => e.Id)
-                .IsRequired();
+                .HasKey(e => e.roomid);
 
         }
     }

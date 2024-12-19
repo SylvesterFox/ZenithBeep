@@ -15,4 +15,8 @@
     <ProjectReference Include="..\ReworkZenithBeep.Data\ReworkZenithBeep.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

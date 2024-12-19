@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ReworkZenithBeep.Data.Migrations.Migrations
 {
     /// <inheritdoc />
-    public partial class Updatexyu : Migration
+    public partial class InitalCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +23,18 @@ namespace ReworkZenithBeep.Data.Migrations.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Guilds", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ItemsTempRooms",
+                columns: table => new
+                {
+                    roomid = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
+                    Id = table.Column<decimal>(type: "numeric(20,0)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItemsTempRooms", x => x.roomid);
                 });
 
             migrationBuilder.CreateTable(
@@ -92,24 +104,6 @@ namespace ReworkZenithBeep.Data.Migrations.Migrations
                     table.PrimaryKey("PK_ItemsRooms", x => x.Id);
                     table.ForeignKey(
                         name: "FK_ItemsRooms_User_Id",
-                        column: x => x.Id,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ItemsTempRooms",
-                columns: table => new
-                {
-                    Id = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
-                    roomid = table.Column<decimal>(type: "numeric(20,0)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ItemsTempRooms", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ItemsTempRooms_User_Id",
                         column: x => x.Id,
                         principalTable: "User",
                         principalColumn: "Id",
