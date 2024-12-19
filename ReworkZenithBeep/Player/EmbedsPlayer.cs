@@ -56,7 +56,7 @@ namespace ReworkZenithBeep.Player
             builder.AddField("Author", track?.Author, true);
             builder.AddField("Duration", track.Duration.ToString(@"hh\:mm\:ss"), true);
 
-            builder.WithFooter("ZenithBeep v0.01[DSharpVer] • SylvesterNotCute © Все права задраконины", "https://avatars.githubusercontent.com/u/51517881?v=4");
+            //builder.WithFooter("ZenithBeep v0.01[DSharpVer] • SylvesterNotCute © Все права задраконины", "https://avatars.githubusercontent.com/u/51517881?v=4");
 
             return builder;
 

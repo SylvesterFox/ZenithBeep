@@ -200,7 +200,7 @@ namespace ReworkZenithBeep.Module.Music
             }
         }
 
-        public async Task LoopAsync(CommonContext ctx)
+        public async Task LoopAsync(CommonContext ctx) // ToDo: Сделать в виде Embed'а 
         {
             await ctx.DeferAsync(ephemeral: true);
             var player = await GetPlayerAsync(ctx);
@@ -209,7 +209,11 @@ namespace ReworkZenithBeep.Module.Music
             if (player.CurrentTrack != null)
             {
                 player.RepeatMode = player.RepeatMode == TrackRepeatMode.Track ? TrackRepeatMode.None : TrackRepeatMode.Track;
-                await ctx.RespondTextAsync($"Track {(player.RepeatMode == TrackRepeatMode.Track ? "looped!" : "not looped!")}");
+                
+                //await ctx.RespondTextAsync($"Track {(player.RepeatMode == TrackRepeatMode.Track ? "looped!" : "not looped!")}");
+                var embed = EmbedTempalte.UniEmbed($"Track {(player.RepeatMode == TrackRepeatMode.Track ? "looped!" : "not looped!")}");
+                await ctx.RespondEmbedAsync(embed);
+                return;
             }
             else
                 await ctx.RespondEmbedAsync(EmbedsPlayer.EmptyQueueEmbed());
@@ -224,9 +228,7 @@ namespace ReworkZenithBeep.Module.Music
             await player.Queue.ClearAsync().ConfigureAwait(false);
             var embed = EmbedTempalte.UniEmbed("Clear queue!");
             await ctx.RespondEmbedAsync(embed);
+
         }
-
-   
-
     }
 }
