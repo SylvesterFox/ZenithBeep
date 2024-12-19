@@ -8,10 +8,11 @@ namespace ReworkZenithBeep.Data
     public class DataBot
     {
         private readonly IDbContextFactory<BotContext> _contextFactory;
-        public DataBot(IDbContextFactory<BotContext> contextFactory)
+        public DataBot(IDbContextFactory<BotContext> ContextFactory)
         {
-            _contextFactory = contextFactory;
+            _contextFactory = ContextFactory;
         }
+
         /// <summary>
         /// Creates and receives a guild from the base
         /// </summary>
@@ -36,6 +37,27 @@ namespace ReworkZenithBeep.Data
 
             return itemGuild;
         }
+
+        public async Task<ItemUser> GetOrCreateUser(DiscordUser user)
+        {
+            ItemUser itemUser;
+            using var context = _contextFactory.CreateDbContext();
+            var query = context.User.Where(x=> x.Id == user.Id);
+
+            if (await query.AnyAsync() == false)
+            {
+                itemUser = new ItemUser()
+                {
+                    Id = user.Id,
+                    UserName = user.Username,
+                };
+                context.Add(itemUser);
+                await context.SaveChangesAsync();
+            }
+            else itemUser = await query.FirstAsync();
+            return itemUser;
+        }
+
         /// <summary>
         /// Prefix update request
         /// </summary>
@@ -102,9 +124,9 @@ namespace ReworkZenithBeep.Data
         /// <summary>
         /// Get role from database
         /// </summary>
-        /// <param name="guild"></param>
-        /// <param name="messageId"></param>
-        /// <param name="emoji"></param>
+        /// <param name="guild">DiscordGuild entities</param>
+        /// <param name="messageId">ulong id</param>
+        /// <param name="emoji">string emoji</param>
         /// <returns></returns>
         public async Task<ItemRolesSelector?> GetRoleAutoMod(DiscordGuild guild, ulong messageId, string emoji)
         {
@@ -122,6 +144,13 @@ namespace ReworkZenithBeep.Data
             return await query.FirstOrDefaultAsync();
         }
 
+
+        /// <summary>
+        /// Delete role from database
+        /// </summary>
+        /// <param name="guild">DiscordGuild entities</param>
+        /// <param name="idkey">Key int id</param>
+        /// <returns></returns>
         public async Task<bool> DeleteRoleAutoMod(DiscordGuild guild, int idkey)
         {
             using var context = _contextFactory.CreateDbContext();
@@ -141,6 +170,12 @@ namespace ReworkZenithBeep.Data
             return false;
         }
 
+        /// <summary>
+        ///  Get roles from key
+        /// </summary>
+        /// <param name="guild"></param>
+        /// <param name="idkey"></param>
+        /// <returns></returns>
         public async Task<ItemRolesSelector?> GetKeyRoles(DiscordGuild guild, int idkey)
         {
             using var context = _contextFactory.CreateDbContext();

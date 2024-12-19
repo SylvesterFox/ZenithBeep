@@ -11,7 +11,7 @@ using ReworkZenithBeep.Data;
 namespace ReworkZenithBeep.Data.Migrations.Migrations
 {
     [DbContext(typeof(BotContext))]
-    [Migration("20241109175916_InitalCreate")]
+    [Migration("20241219133047_InitalCreate")]
     partial class InitalCreate
     {
         /// <inheritdoc />
@@ -77,6 +77,66 @@ namespace ReworkZenithBeep.Data.Migrations.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemRoomersLobby", b =>
+                {
+                    b.Property<decimal>("Id")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("LobbyId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RoomersLobbies");
+                });
+
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemRooomsSettings", b =>
+                {
+                    b.Property<decimal>("Id")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<int>("limitChannel")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("nameChannel")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ItemsRooms");
+                });
+
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemTempRoom", b =>
+                {
+                    b.Property<decimal>("roomid")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<decimal>("Id")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.HasKey("roomid");
+
+                    b.ToTable("ItemsTempRooms");
+                });
+
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemUser", b =>
+                {
+                    b.Property<decimal>("Id")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("cookieBox")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("User");
+                });
+
             modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemRolesSelector", b =>
                 {
                     b.HasOne("ReworkZenithBeep.Data.Models.items.ItemGuild", "Guild")
@@ -88,9 +148,38 @@ namespace ReworkZenithBeep.Data.Migrations.Migrations
                     b.Navigation("Guild");
                 });
 
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemRoomersLobby", b =>
+                {
+                    b.HasOne("ReworkZenithBeep.Data.Models.items.ItemGuild", "Guild")
+                        .WithMany("RoomersLobby")
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guild");
+                });
+
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemRooomsSettings", b =>
+                {
+                    b.HasOne("ReworkZenithBeep.Data.Models.items.ItemUser", "User")
+                        .WithMany("Roomers")
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemGuild", b =>
                 {
                     b.Navigation("Roles");
+
+                    b.Navigation("RoomersLobby");
+                });
+
+            modelBuilder.Entity("ReworkZenithBeep.Data.Models.items.ItemUser", b =>
+                {
+                    b.Navigation("Roomers");
                 });
 #pragma warning restore 612, 618
         }

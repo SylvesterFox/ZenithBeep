@@ -14,10 +14,10 @@ namespace ReworkZenithBeep.Module.Utils
             _Uticommand = UtilityCommand.GetInstance();
         }
 
-        [Command("test")]
+        [Command("bugreport")]
         public async Task TestAsyncCommand(CommandContext context)
         {
-            await UtilityCommand.TestCommand(new NextCommand(context));
+            await UtilityCommand.BugReportCommmand(new NextCommand(context));
         }
 
       

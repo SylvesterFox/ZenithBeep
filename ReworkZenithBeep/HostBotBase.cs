@@ -11,9 +11,12 @@ using ReworkZenithBeep.Data;
 using ReworkZenithBeep.Handler;
 using ReworkZenithBeep.Module.Music;
 using ReworkZenithBeep.Module.RolesGet;
+using ReworkZenithBeep.Module.Rooms;
 using ReworkZenithBeep.Module.Utils;
 using ReworkZenithBeep.Services;
 using ReworkZenithBeep.Settings;
+using System.Reflection;
+
 
 
 namespace ReworkZenithBeep
@@ -23,9 +26,14 @@ namespace ReworkZenithBeep
         public static IAudioService AudioService { get; private set; }
         public static PaginationService Pagination { get; private set; }
 
+        public static string versionString { get; private set; } = Assembly.GetExecutingAssembly()?
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+        .InformationalVersion ?? "null version";
+
         private readonly IServiceProvider _serviceProvider;
         private readonly DiscordClient _discordClient;
         private readonly BotConfig _botConfig;
+        
 
         public HostBotBase(IServiceProvider serviceProvider, DiscordClient discord, DataBot dataBot)
         {
@@ -35,6 +43,7 @@ namespace ReworkZenithBeep
             this._serviceProvider = serviceProvider;
             this._discordClient = discord;
             _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
+
             if (_botConfig.AUDIOSERICES != true)
             {
                 AudioService = serviceProvider.GetRequiredService<IAudioService>();
@@ -46,14 +55,12 @@ namespace ReworkZenithBeep
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             
-
-
             var slash = _discordClient
                 .UseSlashCommands(new SlashCommandsConfiguration
                 {
                     Services = _serviceProvider
                 });
-            
+
 
             var next = _discordClient
                 .UseCommandsNext(new CommandsNextConfiguration
@@ -63,32 +70,14 @@ namespace ReworkZenithBeep
                 });
 
 
-            // Prefix command
-            next.RegisterCommands<UtilityNextCommand>();
-            // Slash command
-
-
-            // Using database
-            if (_botConfig.NODB_MODE != true)
+            try
             {
-                // Command prefix
-                next.RegisterCommands<UtilityForDataNextCommand>();
-                // Slash command
-                slash.RegisterCommands<UtilitySlashCommand>();
-                slash.RegisterCommands<RoleSelectorsSlash>();
-            }
-
-            // Audio command
-            if (_botConfig.AUDIOSERICES != true)
+                await _discordClient.ConnectAsync().ConfigureAwait(false);
+            } catch (Exception ex)
             {
-                // Comannd prefix
-                next.RegisterCommands<MusicNextCommand>();
-                // Slash command
-                slash.RegisterCommands<MusicSlashCommand>();
-                
+                Console.WriteLine(ex.Message);
+                Environment.Exit(0);
             }
-
-            await _discordClient.ConnectAsync().ConfigureAwait(false);
 
             var readyTaskCompletionSource = new TaskCompletionSource();
 
@@ -98,26 +87,60 @@ namespace ReworkZenithBeep
             {
                 var db = _serviceProvider.GetRequiredService<BotContext>();
                 await db.Database.MigrateAsync();
-        
-                Console.WriteLine("Ready RAWR!");
-                
+                Console.WriteLine(" _____         _ _   _   _____            ");
+                Console.WriteLine("|__   |___ ___|_| |_| |_| __  |___ ___ ___");
+                Console.WriteLine("|   __| -_|   | |  _|   | __ -| -_| -_| . |");
+                Console.WriteLine("|_____|___|_|_|_|_| |_|_|_____|___|___|  _|");
+                Console.WriteLine("                                      |_|  ");
+
+
+                Console.WriteLine($"Version: {versionString}");
+
+
             }
 
-            // Events
-            var roleSelectorHandler = new RoleSelectorsHandler(_serviceProvider);
+            // Prefix command
+            next.RegisterCommands<UtilityNextCommand>();
 
-            _discordClient.MessageReactionAdded += roleSelectorHandler.MessageReactionAdd;
-            _discordClient.MessageReactionRemoved += roleSelectorHandler.MessageReactionRemove;
+
+            // Audio command
+            if (_botConfig.AUDIOSERICES != true)
+            {
+                // Comannd prefix
+                next.RegisterCommands<MusicNextCommand>();
+                // Slash command
+                slash.RegisterCommands<MusicSlashCommand>();
+
+            }
+
+            // Using database
+            if (_botConfig.NODB_MODE != true)
+            {
+                // Command prefix
+                next.RegisterCommands<UtilityForDataNextCommand>();
+                // Slash command
+                slash.RegisterCommands<UtilitySlashCommand>();
+                slash.RegisterCommands<RoleSelectorsSlash>();
+                slash.RegisterCommands<RoomsSelectorsSlash>();
+                // Events
+                var roleSelectorHandler = new RoleSelectorsHandler(_serviceProvider);
+                var voiceRoomsHandler = new VoiceRoomsHandler(_serviceProvider);
+
+                _discordClient.MessageReactionAdded += roleSelectorHandler.MessageReactionAdd;
+                _discordClient.MessageReactionRemoved += roleSelectorHandler.MessageReactionRemove;
+                _discordClient.VoiceStateUpdated += voiceRoomsHandler.OnRoomStateUpdated;
+            }  
+
+
             _discordClient.Ready += SetResult;
 
             await readyTaskCompletionSource.Task.ConfigureAwait(false);
             _discordClient.Ready -= SetResult;
 
-            
 
             await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken).ConfigureAwait(false);
         }
 
-        
+
     }
 }
