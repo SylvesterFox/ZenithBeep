@@ -29,7 +29,8 @@ namespace ReworkZenithBeep.Handler
                     var member = (DiscordMember) e.After.User;
                     var overWriteBuilderUser = new DiscordOverwriteBuilder[]
                     {
-                        new DiscordOverwriteBuilder(member).Allow(Permissions.ManageChannels)
+                        new DiscordOverwriteBuilder(member).Allow(Permissions.ManageChannels),
+                        new DiscordOverwriteBuilder(e.Guild.EveryoneRole).Allow(Permissions.UseVoice)
                     };
                     var channel = await e.Guild.CreateVoiceChannelAsync(dataSettings.nameChannel, user_limit: dataSettings.limitChannel, overwrites:overWriteBuilderUser);
                     var dataTemp = await _repositoryRooms.CreateTempRoom(e.User, channel);
@@ -44,8 +45,7 @@ namespace ReworkZenithBeep.Handler
             }
             // Check if the user left a voice channel
             else if (e.Before?.Channel != null && e.After?.Channel == null)
-            {
-                Console.WriteLine($"{e.User.Username} left the voice channel {e.Before.Channel.Name}");
+            {    
                 await DeleteRoom(e.Before.Channel);
             }
             // Check if the user switched voice channels

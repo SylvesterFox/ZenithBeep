@@ -120,9 +120,26 @@ namespace ReworkZenithBeep.Module.Rooms
 
                 if (isAllowed && !isDenied) {
                     await voice.Channel.AddOverwriteAsync(voice.Guild.EveryoneRole, deny: Permissions.UseVoice);
+                    var embedSuccess = new EmbedTempalte.DetailedEmbedContent
+                    {
+                        Color = new DiscordColor("#72f963"),
+                        Description = $"The channel was closed!",
+                        Title = "Success!"
+                    };
+                    var embed = EmbedTempalte.DetaliedEmbed(embedSuccess);
+                    await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
+
                 } else
                 {
                     await voice.Channel.AddOverwriteAsync(voice.Guild.EveryoneRole, allow: Permissions.UseVoice);
+                    var embedSuccess = new EmbedTempalte.DetailedEmbedContent
+                    {
+                        Color = new DiscordColor("#72f963"),
+                        Description = $"The channel was opened!",
+                        Title = "Success!"
+                    };
+                    var embed = EmbedTempalte.DetaliedEmbed(embedSuccess);
+                    await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
                 }
                 
 

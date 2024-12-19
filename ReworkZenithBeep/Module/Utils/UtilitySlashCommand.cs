@@ -20,10 +20,10 @@ namespace ReworkZenithBeep.Module.Utils
             await UtilityCommand.PingCommand(ctx);
         }
 
-        [SlashCommand("test", "Test command")]
+        [SlashCommand("bugreport", "Bug report command")]
         public async Task TestAsync(InteractionContext ctx)
         {
-            await UtilityCommand.TestCommand(new SlashContext(ctx));
+            await UtilityCommand.BugReportCommmand(new SlashContext(ctx));
             
         }
 
