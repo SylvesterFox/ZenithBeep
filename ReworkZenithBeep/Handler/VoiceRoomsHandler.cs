@@ -21,7 +21,7 @@ namespace ReworkZenithBeep.Handler
             if (e.Before?.Channel == null && e.After?.Channel != null)
             {
                 Console.WriteLine($"{e.User.Username} joined the voice channel {e.After.Channel.Name}");
-                Console.WriteLine($"Category: {e.Channel.IsCategory}");
+                var category = e.After.Channel.Parent;
                 var getLobby = await _repositoryRooms.GetLobbyDataChannel(e.Channel.Id);
                 if (getLobby != null)
                 {
@@ -34,6 +34,12 @@ namespace ReworkZenithBeep.Handler
                     };
                     var channel = await e.Guild.CreateVoiceChannelAsync(dataSettings.nameChannel, user_limit: dataSettings.limitChannel, overwrites:overWriteBuilderUser);
                     var dataTemp = await _repositoryRooms.CreateTempRoom(e.User, channel);
+
+                    if (category != null)
+                    {
+                        await channel.ModifyAsync(c => c.Parent = category);
+                    }
+
                     if (!dataTemp)
                     {
                         Console.WriteLine("Not working");

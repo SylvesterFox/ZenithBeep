@@ -35,7 +35,7 @@ namespace ReworkZenithBeep.MessageEmbeds
                 Color = DiscordColor.Red,
                 Title = title ?? ErrorTitle,
                 Description = message ?? string.Empty,
-            }.WithFooter("ver: 2.1.0 [BETA] by SylvesterNotCute", iconUrl: "https://avatars.githubusercontent.com/u/51517881?v=4");
+            }.WithFooter("ver: 2.1.1 [BETA] by SylvesterNotCute", iconUrl: "https://avatars.githubusercontent.com/u/51517881?v=4");
             return builder.Build();
         }
 
@@ -49,7 +49,7 @@ namespace ReworkZenithBeep.MessageEmbeds
                 Color = content.Color ?? beepColor,
                 Title = content.Title,
                 Description = content.Description,
-            }.WithFooter(text: content.Footer ?? "ver: 2.1.0 [BETA] by SylvesterNotCute", iconUrl: "https://avatars.githubusercontent.com/u/51517881?v=4");
+            }.WithFooter(text: content.Footer ?? "ver: 2.1.1 [BETA] by SylvesterNotCute", iconUrl: "https://avatars.githubusercontent.com/u/51517881?v=4");
             return builder.Build();
         }
 
