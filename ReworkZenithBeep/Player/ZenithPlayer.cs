@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.Entities;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Vote;
+using Lavalink4NET.Protocol.Payloads.Events;
 using ReworkZenithBeep.Settings;
 
 
@@ -10,7 +11,6 @@ namespace ReworkZenithBeep.Player
     {
         public CommonContext Context { get; init; }
     }
-
 
     public class ZenithPlayer : VoteLavalinkPlayer
     {
@@ -39,8 +39,20 @@ namespace ReworkZenithBeep.Player
                 .NotifyTrackStartedAsync(track, cancellationToken)
                 .ConfigureAwait(false);
 
-            var embedPlaying = await EmbedsPlayer.NowPlayingEmbed(track?.Track, "Playing ");
-            var message = await channel.SendMessageAsync(embedPlaying);
+            var embedPlaying = EmbedsPlayer.NowPlayingEmbed(track?.Track, "Playing ");
+            message = await channel.SendMessageAsync(embedPlaying);
+            // await Task.Delay(60000);
+            // await message.DeleteAsync();
+        }
+
+        protected override async ValueTask NotifyTrackEndedAsync(ITrackQueueItem trackQueue, TrackEndReason reason, CancellationToken cancellationToken = default) {
+            await base.NotifyTrackEndedAsync(trackQueue, reason);
+        
+            switch (reason) {
+                    case TrackEndReason.Finished:
+                        if (Queue.IsEmpty && CurrentTrack == null) await DisconnectAsync();
+                        break;
+            }
         }
 
         public async Task ControlPauseAsync()

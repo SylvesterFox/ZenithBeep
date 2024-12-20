@@ -27,9 +27,11 @@ namespace ReworkZenithBeep.Handler
                 {
                     var dataSettings = await _repositoryRooms.GetOrCreateSettingsRoom(e.User, $"{e.User.Username}'s Lair");
                     var member = (DiscordMember) e.After.User;
+                    var bot = (DiscordMember) sender.CurrentUser;
                     var overWriteBuilderUser = new DiscordOverwriteBuilder[]
                     {
                         new DiscordOverwriteBuilder(member).Allow(Permissions.ManageChannels),
+                        new DiscordOverwriteBuilder(bot).Allow(Permissions.ManageChannels),
                         new DiscordOverwriteBuilder(e.Guild.EveryoneRole).Allow(Permissions.UseVoice)
                     };
                     var channel = await e.Guild.CreateVoiceChannelAsync(dataSettings.nameChannel, user_limit: dataSettings.limitChannel, overwrites:overWriteBuilderUser);

@@ -32,16 +32,16 @@ namespace ReworkZenithBeep.Player
 
         public static List<DiscordEmbedBuilder> QueueEmbed(ZenithPlayer player)
         {
-            List<DiscordEmbedBuilder> embedBuilders = player.GetQueuePaged(10).Select(str => new DiscordEmbedBuilder().WithDescription(Formatter.BlockCode(str, "cs"))).ToList();
+            List<DiscordEmbedBuilder> embedBuilders = player.GetQueuePaged(10).Select(str => 
+                new DiscordEmbedBuilder().WithDescription(Formatter.BlockCode(str, "cs")
+            )).ToList();
 
             return embedBuilders;
         }
 
 
-        public static async Task<DiscordEmbed> NowPlayingEmbed(this LavalinkTrack track, string? prefix = null, string? color = null)
+        public static DiscordEmbed NowPlayingEmbed(this LavalinkTrack track, string? prefix = null, string? color = null)
         {
-            
-
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
             {
                 Color = new DiscordColor(color ?? "#800080"),
@@ -54,12 +54,9 @@ namespace ReworkZenithBeep.Player
                 url: $"{track?.Uri}"
             );
             builder.AddField("Author", track?.Author, true);
-            builder.AddField("Duration", track.Duration.ToString(@"hh\:mm\:ss"), true);
-
-            builder.WithFooter("ZenithBeep v0.01[DSharpVer] • SylvesterNotCute © Все права задраконины", "https://avatars.githubusercontent.com/u/51517881?v=4");
+            builder.AddField("Duration", track?.Duration.ToString(@"hh\:mm\:ss"), true);
 
             return builder;
-
         }
 
 

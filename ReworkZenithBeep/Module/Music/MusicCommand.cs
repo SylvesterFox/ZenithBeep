@@ -173,8 +173,9 @@ namespace ReworkZenithBeep.Module.Music
 
             await Pagination.SendMessageAsync(ctx, new PaginationMessage(EmbedsPlayer.QueueEmbed(player),
                     title: "List Queue",
-                    embedColor: "#2C2F33",
+                    embedColor: "#800080",
                     user: ctx.Member,
+                    ico: EmbedsPlayer.DEFAULT_THUMBNAIL,
                     new AppearanceOptions()
                     {
                         Timeout = TimeSpan.FromSeconds(500),
@@ -200,7 +201,7 @@ namespace ReworkZenithBeep.Module.Music
             }
         }
 
-        public async Task LoopAsync(CommonContext ctx)
+        public async Task LoopAsync(CommonContext ctx) // ToDo: Сделать в виде Embed'а 
         {
             await ctx.DeferAsync(ephemeral: true);
             var player = await GetPlayerAsync(ctx);
@@ -209,7 +210,11 @@ namespace ReworkZenithBeep.Module.Music
             if (player.CurrentTrack != null)
             {
                 player.RepeatMode = player.RepeatMode == TrackRepeatMode.Track ? TrackRepeatMode.None : TrackRepeatMode.Track;
-                await ctx.RespondTextAsync($"Track {(player.RepeatMode == TrackRepeatMode.Track ? "looped!" : "not looped!")}");
+                
+                //await ctx.RespondTextAsync($"Track {(player.RepeatMode == TrackRepeatMode.Track ? "looped!" : "not looped!")}");
+                var embed = EmbedTempalte.UniEmbed($"Track {(player.RepeatMode == TrackRepeatMode.Track ? "looped!" : "not looped!")}");
+                await ctx.RespondEmbedAsync(embed);
+                return;
             }
             else
                 await ctx.RespondEmbedAsync(EmbedsPlayer.EmptyQueueEmbed());
@@ -224,9 +229,7 @@ namespace ReworkZenithBeep.Module.Music
             await player.Queue.ClearAsync().ConfigureAwait(false);
             var embed = EmbedTempalte.UniEmbed("Clear queue!");
             await ctx.RespondEmbedAsync(embed);
+
         }
-
-   
-
     }
 }
