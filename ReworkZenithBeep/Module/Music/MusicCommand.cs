@@ -173,8 +173,9 @@ namespace ReworkZenithBeep.Module.Music
 
             await Pagination.SendMessageAsync(ctx, new PaginationMessage(EmbedsPlayer.QueueEmbed(player),
                     title: "List Queue",
-                    embedColor: "#2C2F33",
+                    embedColor: "#800080",
                     user: ctx.Member,
+                    ico: EmbedsPlayer.DEFAULT_THUMBNAIL,
                     new AppearanceOptions()
                     {
                         Timeout = TimeSpan.FromSeconds(500),

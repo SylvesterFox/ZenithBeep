@@ -30,15 +30,15 @@ namespace ReworkZenithBeep.Services
 
         internal int Count => Pages.Count;
 
-        public PaginationMessage(IEnumerable<DiscordEmbedBuilder> builders, string title = "", string embedColor = "#2C2F33", DiscordMember user = null, AppearanceOptions options = null)
+        public PaginationMessage(IEnumerable<DiscordEmbedBuilder> builders, string title = "", string embedColor = "#2C2F33", DiscordMember user = null, string ico = null, AppearanceOptions options = null)
         {
             List<DiscordEmbed> embeds = new List<DiscordEmbed>();
-
+            
             int i = 1;
 
             foreach (DiscordEmbedBuilder embed in builders)
             {
-                embed.Title ??= title;
+                embed.WithAuthor(title, iconUrl: ico);
                 embed.Color = new DiscordColor(embedColor);
                 embed.WithFooter(text: $"Page {i++}/{builders.Count()}");
                 embeds.Add(embed.Build());
