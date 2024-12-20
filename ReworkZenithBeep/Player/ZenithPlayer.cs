@@ -47,10 +47,6 @@ namespace ReworkZenithBeep.Player
 
         protected override async ValueTask NotifyTrackEndedAsync(ITrackQueueItem trackQueue, TrackEndReason reason, CancellationToken cancellationToken = default) {
             await base.NotifyTrackEndedAsync(trackQueue, reason);
-
-            Console.WriteLine();
-            
-            
         
             switch (reason) {
                     case TrackEndReason.Finished:
