@@ -27,7 +27,6 @@ namespace ReworkZenithBeep.Module.Music
         }
 
         
-
         public static MusicCommand GetInstance(IAudioService audioService, IServiceProvider service)
         {
             if (instance == null)
@@ -160,7 +159,6 @@ namespace ReworkZenithBeep.Module.Music
 
         public async Task QueueAsync(CommonContext ctx)
         {
-            await ctx.DeferAsync();
             var player = await GetPlayerAsync(ctx);
             if (player == null) return;
 
@@ -178,7 +176,7 @@ namespace ReworkZenithBeep.Module.Music
                     ico: EmbedsPlayer.DEFAULT_THUMBNAIL,
                     new AppearanceOptions()
                     {
-                        Timeout = TimeSpan.FromSeconds(500),
+                        Timeout = TimeSpan.FromMinutes(5),
                         Style = DisplayStyle.Full,
                     }));
         }
@@ -201,7 +199,7 @@ namespace ReworkZenithBeep.Module.Music
             }
         }
 
-        public async Task LoopAsync(CommonContext ctx) // ToDo: Сделать в виде Embed'а 
+        public async Task LoopAsync(CommonContext ctx) 
         {
             await ctx.DeferAsync(ephemeral: true);
             var player = await GetPlayerAsync(ctx);
@@ -211,7 +209,6 @@ namespace ReworkZenithBeep.Module.Music
             {
                 player.RepeatMode = player.RepeatMode == TrackRepeatMode.Track ? TrackRepeatMode.None : TrackRepeatMode.Track;
                 
-                //await ctx.RespondTextAsync($"Track {(player.RepeatMode == TrackRepeatMode.Track ? "looped!" : "not looped!")}");
                 var embed = EmbedTempalte.UniEmbed($"Track {(player.RepeatMode == TrackRepeatMode.Track ? "looped!" : "not looped!")}");
                 await ctx.RespondEmbedAsync(embed);
                 return;

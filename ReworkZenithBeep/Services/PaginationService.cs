@@ -100,62 +100,73 @@ namespace ReworkZenithBeep.Services
                     return;
                 }
 
-                switch (args.Interaction.Data.CustomId)
+                try
                 {
-                    case "first":
-                        if (page.CurrentPage != 1)
-                        {
-                            page.CurrentPage = 1;
-                            await args.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder().AddEmbed(page.GetEmbed()).AddComponents(args.Message.Components));
-                        }
-                        break;
+                    DiscordInteractionResponseBuilder responseBuilder = null;
 
-                    case "back":
-                        if (page.CurrentPage != 1)
-                        {
-                            page.CurrentPage--;
-                            await args.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder().AddEmbed(page.GetEmbed()).AddComponents(args.Message.Components));
-                        }
-                        break;
+                    switch (args.Interaction.Data.CustomId)
+                    {
+                        case "first":
+                            if (page.CurrentPage != 1)
+                            {
+                                page.CurrentPage = 1;
+                                responseBuilder = new DiscordInteractionResponseBuilder().AddEmbed(page.GetEmbed()).AddComponents(args.Message.Components);
+                            }
+                            break;
 
-                    case "next":
-                        if (page.CurrentPage != page.Count)
-                        {
-                            page.CurrentPage++;
-                            await args.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder().AddEmbed(page.GetEmbed()).AddComponents(args.Message.Components));
-                        }
-                        break;
+                        case "back":
+                            if (page.CurrentPage != 1)
+                            {
+                                page.CurrentPage--;
+                                responseBuilder = new DiscordInteractionResponseBuilder().AddEmbed(page.GetEmbed()).AddComponents(args.Message.Components);
+                            }
+                            break;
 
-                    case "last":
-                        if (page.CurrentPage != page.Count)
-                        {
-                            page.CurrentPage = page.Count;
-                            await args.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder().AddEmbed(page.GetEmbed()).AddComponents(args.Message.Components));
-                        }
-                        break;
+                        case "next":
+                            if (page.CurrentPage != page.Count)
+                            {
+                                page.CurrentPage++;
+                                responseBuilder = new DiscordInteractionResponseBuilder().AddEmbed(page.GetEmbed()).AddComponents(args.Message.Components);
+                            }
+                            break;
 
-                    case "stop":
-                        switch (page.Options.OnStop)
-                        {
-                            case StopAction.DeleteMessage:
-                                await args.Message.DeleteAsync();
-                                break;
+                        case "last":
+                            if (page.CurrentPage != page.Count)
+                            {
+                                page.CurrentPage = page.Count;
+                                responseBuilder = new DiscordInteractionResponseBuilder().AddEmbed(page.GetEmbed()).AddComponents(args.Message.Components);
+                            }
+                            break;
 
-                            case StopAction.Clear:
-                                await args.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder()
-                                    .WithContent("No more buttons for you"));
-                                await Task.Delay(1000);
-                                await args.Message.DeleteAsync();
-                                break;
-                        }
+                        case "stop":
+                            switch (page.Options.OnStop)
+                            {
+                                case StopAction.DeleteMessage:
+                                    await args.Message.DeleteAsync();
+                                    return;
+                            }
+                            break;
 
-                        messages.Remove(args.Message.Id);
-                        break;
+                        default:
+                            Console.WriteLine($"Unknown CustomId: {args.Interaction.Data.CustomId}");
+                            return;
+                    }
 
-                    case "select":
-                        await args.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
-                        messages.Remove(args.Message.Id);
-                        break;
+                    if (responseBuilder != null)
+                    {
+                        await args.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, responseBuilder);
+                        Console.WriteLine();
+                    }
+                }
+                catch (DSharpPlus.Exceptions.BadRequestException ex)
+                {
+                    // Log the exception details
+                    Console.WriteLine($"BadRequestException: {ex.JsonMessage}");
+                }
+                catch (Exception ex)
+                {
+                    // Log any other exceptions
+                    Console.WriteLine($"Exception: {ex.Message}");
                 }
             }
         }

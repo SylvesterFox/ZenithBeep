@@ -3,6 +3,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.EventArgs;
 using DSharpPlus.SlashCommands;
+using DSharpPlus.Interactivity;
 using Lavalink4NET;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ using ReworkZenithBeep.Module.Utils;
 using ReworkZenithBeep.Services;
 using ReworkZenithBeep.Settings;
 using System.Reflection;
+using DSharpPlus.Interactivity.Extensions;
 
 
 
@@ -70,6 +72,12 @@ namespace ReworkZenithBeep
                 });
 
 
+            var interactivity = _discordClient.UseInteractivity(new InteractivityConfiguration
+            {
+                Timeout = TimeSpan.FromMinutes(5)
+            });
+
+
             try
             {
                 await _discordClient.ConnectAsync().ConfigureAwait(false);
@@ -93,9 +101,7 @@ namespace ReworkZenithBeep
                 Console.WriteLine("|_____|___|_|_|_|_| |_|_|_____|___|___|  _|");
                 Console.WriteLine("                                      |_|  ");
 
-
                 Console.WriteLine($"Version: {versionString}");
-
 
             }
 

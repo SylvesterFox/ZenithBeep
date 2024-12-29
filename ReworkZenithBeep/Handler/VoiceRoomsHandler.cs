@@ -27,7 +27,7 @@ namespace ReworkZenithBeep.Handler
                 {
                     var dataSettings = await _repositoryRooms.GetOrCreateSettingsRoom(e.User, $"{e.User.Username}'s Lair");
                     var member = (DiscordMember) e.After.User;
-                    var bot = (DiscordMember) sender.CurrentUser;
+                    var bot = await e.Guild.GetMemberAsync(sender.CurrentUser.Id);
                     var overWriteBuilderUser = new DiscordOverwriteBuilder[]
                     {
                         new DiscordOverwriteBuilder(member).Allow(Permissions.ManageChannels),
