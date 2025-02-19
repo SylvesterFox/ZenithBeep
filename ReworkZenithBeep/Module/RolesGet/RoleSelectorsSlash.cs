@@ -37,6 +37,7 @@ namespace ReworkZenithBeep.Module.RolesGet
         }
 
         [SlashCommand("roleselector-list", "Get list role selector")]
+        [SlashCommandPermissions(DSharpPlus.Permissions.ManageRoles)]
         public async Task ListRoleSelect(InteractionContext ctx, [Option("messageId", "Message ID")] string? messageId = null) {
             if (!string.IsNullOrEmpty(messageId)) {
                 var id = Convert.ToUInt64(messageId);
