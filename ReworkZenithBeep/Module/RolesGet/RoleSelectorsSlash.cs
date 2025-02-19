@@ -35,5 +35,16 @@ namespace ReworkZenithBeep.Module.RolesGet
             var id = Convert.ToInt32(keyRole);
             await _roles.DeleteRolesCommand(context, id);
         }
+
+        [SlashCommand("roleselector-list", "Get list role selector")]
+        public async Task ListRoleSelect(InteractionContext ctx, [Option("messageId", "Message ID")] string? messageId = null) {
+            if (!string.IsNullOrEmpty(messageId)) {
+                var id = Convert.ToUInt64(messageId);
+                await _roles.ListRolesCommand(ctx, id);
+            } else {
+                await _roles.ListRolesCommand(ctx, null);
+            }
+           
+        }
     }
 }

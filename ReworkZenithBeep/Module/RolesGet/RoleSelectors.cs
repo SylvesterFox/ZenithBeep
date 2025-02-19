@@ -3,6 +3,7 @@
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using ReworkZenithBeep.Data;
+using ReworkZenithBeep.Data.Models.items;
 using ReworkZenithBeep.MessageEmbeds;
 using ReworkZenithBeep.Settings;
 
@@ -125,6 +126,42 @@ namespace ReworkZenithBeep.Module.RolesGet
                 var embed = EmbedTempalte.DetaliedEmbed(embedSuccess);
                 await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
             }
+        }
+
+
+        public async Task ListRolesCommand(InteractionContext ctx, ulong? messageid) {
+            await ctx.DeferAsync(true);
+            List<ItemRolesSelector> itemRoleslist;
+            var rolesByMessageId = new Dictionary<ulong, string>();
+
+            if (messageid != null) {
+                itemRoleslist = await _dbContext.GetListRoleSelector(ctx.Guild, messageid);
+            } else {
+                itemRoleslist = await _dbContext.GetListRoleSelector(ctx.Guild);
+            }
+
+            var embed = new DiscordEmbedBuilder {
+                Title = "List roles selector",
+                Color = DiscordColor.Blurple
+            };
+
+
+            foreach (var itemRole in itemRoleslist) {
+                ulong dataIdmessage = itemRole.messageId;
+                string roleInfo = $"Delete key: {itemRole.keyId} -- Role: <@&{itemRole.roleId}> -- Emoji: {itemRole.emojiButton}";
+
+                if (rolesByMessageId.ContainsKey(dataIdmessage)) {
+                    rolesByMessageId[dataIdmessage] += "\n" + roleInfo;
+                } else {
+                    rolesByMessageId[dataIdmessage] = roleInfo;
+                }
+            }
+
+            foreach (var entry in rolesByMessageId) {
+                embed.AddField($"Message ID: {entry.Key}", entry.Value);
+            }
+
+            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
         }
     }
 }

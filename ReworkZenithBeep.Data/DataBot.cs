@@ -188,5 +188,20 @@ namespace ReworkZenithBeep.Data
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<List<ItemRolesSelector>> GetListRoleSelector(DiscordGuild guild, ulong? messageid = null) {
+            using var context = _contextFactory.CreateDbContext();
+            ItemGuild contextGuild = await GetOrCreateGuild(guild);
+            List<ItemRolesSelector>? query;
+            
+            if (messageid != null) {
+                query = context.Roles.Where(x => x.messageId == messageid)
+                    .Where(x => x.Id == contextGuild.Id).ToList();
+            } else {
+                query = context.Roles.Where(x => x.Id == contextGuild.Id).ToList();
+            }
+
+            return query;
+        }
+
     }
 }

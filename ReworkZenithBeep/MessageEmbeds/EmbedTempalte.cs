@@ -6,6 +6,7 @@ namespace ReworkZenithBeep.MessageEmbeds
     public static class EmbedTempalte
     {
         public static DiscordColor beepColor { get; } = new DiscordColor("#bb6ef6");
+        public static string[] ver = HostBotBase.versionString.Split("+");
 
 
         public static DiscordEmbed UniEmbed(string title, string? color = null)
@@ -35,7 +36,7 @@ namespace ReworkZenithBeep.MessageEmbeds
                 Color = DiscordColor.Red,
                 Title = title ?? ErrorTitle,
                 Description = message ?? string.Empty,
-            }.WithFooter("ver: 2.1.1 [BETA] by SylvesterNotCute", iconUrl: "https://avatars.githubusercontent.com/u/51517881?v=4");
+            }.WithFooter($"ver: {ver[0]}", iconUrl: "https://avatars.githubusercontent.com/u/51517881?v=4");
             return builder.Build();
         }
 
@@ -49,7 +50,7 @@ namespace ReworkZenithBeep.MessageEmbeds
                 Color = content.Color ?? beepColor,
                 Title = content.Title,
                 Description = content.Description,
-            }.WithFooter(text: content.Footer ?? "ver: 2.1.1 [BETA] by SylvesterNotCute", iconUrl: "https://avatars.githubusercontent.com/u/51517881?v=4");
+            }.WithFooter(text: content.Footer ?? $"ver: {ver[0]}", iconUrl: "https://avatars.githubusercontent.com/u/51517881?v=4");
             return builder.Build();
         }
 
