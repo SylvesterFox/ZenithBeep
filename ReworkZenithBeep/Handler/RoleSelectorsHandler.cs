@@ -17,7 +17,8 @@ namespace ReworkZenithBeep.Handler
         public async Task MessageReactionAdd(DiscordClient sender, MessageReactionAddEventArgs args)
         {
             var dataRole = await dataBot.GetRoleAutoMod(args.Guild, args.Message.Id, args.Emoji);
-            if (dataRole == null) {
+
+            if (dataRole == null || args.User.Id == sender.CurrentUser.Id) {
                 return;
             }
 
@@ -25,14 +26,14 @@ namespace ReworkZenithBeep.Handler
             var role = args.Guild.GetRole(dataRole.roleId);
             await member.GrantRoleAsync(role);
             
-            Console.WriteLine($"test add from Role: {dataRole.roleId}");
             await Task.CompletedTask;
         }
 
         public async Task MessageReactionRemove(DiscordClient sender, MessageReactionRemoveEventArgs args)
         {
             var dataRole = await dataBot.GetRoleAutoMod(args.Guild, args.Message.Id, args.Emoji);
-            if (dataRole == null)
+
+            if (dataRole == null || args.User.Id == sender.CurrentUser.Id)
             {
                 return;
             }

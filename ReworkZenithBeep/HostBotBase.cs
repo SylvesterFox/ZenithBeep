@@ -42,8 +42,8 @@ namespace ReworkZenithBeep
             ArgumentNullException.ThrowIfNull(serviceProvider);
             ArgumentNullException.ThrowIfNull(discord);
 
-            this._serviceProvider = serviceProvider;
-            this._discordClient = discord;
+            _serviceProvider = serviceProvider;
+            _discordClient = discord;
             _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
 
             if (_botConfig.AUDIOSERICES != true)
@@ -102,7 +102,7 @@ namespace ReworkZenithBeep
                 Console.WriteLine("                                      |_|  ");
 
                 Console.WriteLine($"Version: {versionString}");
-
+                await Status.UpdateStatus(client);
             }
 
             // Prefix command
@@ -131,14 +131,18 @@ namespace ReworkZenithBeep
                 // Events
                 var roleSelectorHandler = new RoleSelectorsHandler(_serviceProvider);
                 var voiceRoomsHandler = new VoiceRoomsHandler(_serviceProvider);
+                
 
                 _discordClient.MessageReactionAdded += roleSelectorHandler.MessageReactionAdd;
                 _discordClient.MessageReactionRemoved += roleSelectorHandler.MessageReactionRemove;
                 _discordClient.VoiceStateUpdated += voiceRoomsHandler.OnRoomStateUpdated;
+                
             }  
 
-
             _discordClient.Ready += SetResult;
+            _discordClient.GuildCreated += GuildHandler.OnGuildAvailble;
+            _discordClient.GuildDeleted += GuildHandler.OnGuildUavailble;
+
 
             await readyTaskCompletionSource.Task.ConfigureAwait(false);
             _discordClient.Ready -= SetResult;
@@ -147,6 +151,6 @@ namespace ReworkZenithBeep
             await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken).ConfigureAwait(false);
         }
 
-
+        
     }
 }

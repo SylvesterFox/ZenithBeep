@@ -57,7 +57,7 @@ namespace ReworkZenithBeep.Module.RolesGet
             if (_msg == null)
             {
                 var embedError = EmbedTempalte.ErrorEmbed("Message by id was not found! >~<", "MassageNotFound");
-                await ctx.CreateResponseAsync(embedError);
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embedError));
                 return;
             }
 
@@ -68,7 +68,7 @@ namespace ReworkZenithBeep.Module.RolesGet
                 if (success == false)
                 {
                     var embedError = EmbedTempalte.ErrorEmbed("This object already exists! >~<", "DataObjectExists");
-                    await ctx.CreateResponseAsync(embedError);
+                    await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embedError));
                     return;
                 }
 
@@ -80,7 +80,7 @@ namespace ReworkZenithBeep.Module.RolesGet
                     Title = "Success!"
                 };
                 var embed = EmbedTempalte.DetaliedEmbed(embedSuccess);
-                await ctx.CreateResponseAsync(embed);
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
             }
 
 
@@ -93,14 +93,14 @@ namespace ReworkZenithBeep.Module.RolesGet
 
             if (dataRole == null)
             {
-                await ctx.CreateResponseAsync("Not has been deleted!");
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().WithContent("Not has been deleted!"));
                 return;
             }
 
             var _msg = await ctx.Channel.GetMessageAsync(dataRole.messageId);
 
             if (_msg == null) {
-                await ctx.CreateResponseAsync("Not found message!");
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().WithContent("Not found message!"));
                 return; 
             }
 
@@ -111,7 +111,7 @@ namespace ReworkZenithBeep.Module.RolesGet
                 bool success = await _dbContext.DeleteRoleAutoMod(ctx.Guild, keyid);
                 if (success == false)
                 {
-                    await ctx.CreateResponseAsync("Not has been deleted!");
+                    await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().WithContent("Not has been deleted!"));
                     return;
                 }
 
@@ -123,7 +123,7 @@ namespace ReworkZenithBeep.Module.RolesGet
                     Title = "Success!"
                 };
                 var embed = EmbedTempalte.DetaliedEmbed(embedSuccess);
-                await ctx.CreateResponseAsync(embed);
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
             }
         }
     }

@@ -27,6 +27,10 @@ namespace ReworkZenithBeep.Module.Utils
             
         }
 
- 
+        [SlashCommand("help", "Get list commands")]
+        public async Task HelpAsync(InteractionContext ctx) {
+           await UtilityCommand.HelpCommand(ctx);
+        }
+
     }
 }
