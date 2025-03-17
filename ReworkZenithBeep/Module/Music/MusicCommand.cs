@@ -1,4 +1,5 @@
-﻿using Lavalink4NET;
+﻿using DSharpPlus.Entities;
+using Lavalink4NET;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
@@ -17,7 +18,7 @@ namespace ReworkZenithBeep.Module.Music
         public PaginationService Pagination;
 
         private readonly IAudioService audioService;
-        private static MusicCommand instance;
+        private static MusicCommand? instance;
 
         private MusicCommand(IAudioService audioService, IServiceProvider service)
         {
@@ -62,9 +63,11 @@ namespace ReworkZenithBeep.Module.Music
             {
                 var message = result.Status switch
                 {
-                    PlayerRetrieveStatus.UserNotInVoiceChannel => "You are not connected to a voice channel",
-                    _ => "A unknown error happened"
+                    PlayerRetrieveStatus.UserNotInVoiceChannel => new DiscordEmbedBuilder().WithTitle("You are not connected to a voice channel").WithColor(DiscordColor.Red).Build(),
+                    _ => new DiscordEmbedBuilder().WithTitle("A unknown error happened").WithColor(DiscordColor.Red).Build()
                 };
+                await ctx.RespondEmbedAsync(message).ConfigureAwait(false);
+                return null;
             }
 
             return result.Player;
@@ -102,6 +105,11 @@ namespace ReworkZenithBeep.Module.Music
             {;
                 var embed = EmbedTempalte.UniEmbed($"Nothing was found for {query}.");
                 await ctx.RespondEmbedAsync(embed);
+                if (player.CurrentTrack == null)
+                {
+                    await player.DisconnectAsync();
+                }
+
                 return;
             }
 
@@ -134,7 +142,7 @@ namespace ReworkZenithBeep.Module.Music
 
             if (player.CurrentItem != null)
             {
-                var embed_skip = EmbedTempalte.UniEmbed($"Skip `{player.CurrentTrack.Title}");
+                var embed_skip = EmbedTempalte.UniEmbed($"Skip `{player.CurrentTrack?.Title}");
                 await ctx.RespondEmbedAsync(embed_skip);
                 await player.SkipAsync((int)count);
                 return;
@@ -189,7 +197,7 @@ namespace ReworkZenithBeep.Module.Music
 
             if(player.Queue.Count > position - 1)
             {
-                var embed = EmbedTempalte.UniEmbed($"`{position}.` {player.Queue[(int)position - 1].Track.Title} remove from queue");
+                var embed = EmbedTempalte.UniEmbed($"`{position}.` {player.Queue[(int)position - 1].Track?.Title} remove from queue");
                 await ctx.RespondEmbedAsync(embed);
                 await player.Queue.RemoveAtAsync((int)position - 1).ConfigureAwait(false);
             } else

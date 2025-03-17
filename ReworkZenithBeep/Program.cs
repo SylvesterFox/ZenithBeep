@@ -52,13 +52,13 @@ namespace ReworkZenithBeep
                 Intents = DiscordIntents.All
             });
 
-            if (_botConfig.AUDIOSERICES != true)
+            if (_botConfig.AUDIO_SERVICES != true)
             {
                 builder.Services.AddLavalink();
                 builder.Services.ConfigureLavalink(options =>
                 {
                     options.Passphrase = _botConfig.LAVALINK_PASSWORD;
-                    options.BaseAddress = new Uri(_botConfig.LAVALINK_ADDRES);
+                    options.BaseAddress = new Uri(_botConfig.LAVALINK_ADDRESS);
                     options.WebSocketUri = new Uri(_botConfig.LAVALINK_WEBSOCKET);
                     options.ReadyTimeout = TimeSpan.FromSeconds(10);
                 });

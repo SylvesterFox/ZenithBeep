@@ -46,7 +46,7 @@ namespace ReworkZenithBeep
             _discordClient = discord;
             _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
 
-            if (_botConfig.AUDIOSERICES != true)
+            if (_botConfig.AUDIO_SERVICES != true)
             {
                 AudioService = serviceProvider.GetRequiredService<IAudioService>();
             }
@@ -110,7 +110,7 @@ namespace ReworkZenithBeep
 
 
             // Audio command
-            if (_botConfig.AUDIOSERICES != true)
+            if (_botConfig.AUDIO_SERVICES != true)
             {
                 // Comannd prefix
                 next.RegisterCommands<MusicNextCommand>();

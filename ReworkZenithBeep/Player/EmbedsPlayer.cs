@@ -3,6 +3,7 @@
 using DSharpPlus;
 using DSharpPlus.Entities;
 using Lavalink4NET.Tracks;
+using System.Text;
 using System.Web;
 
 
@@ -40,8 +41,13 @@ namespace ReworkZenithBeep.Player
         }
 
 
-        public static DiscordEmbed NowPlayingEmbed(this LavalinkTrack track, string? prefix = null, string? color = null)
+        public static DiscordEmbed NowPlayingEmbed(this LavalinkTrack track, TimeSpan position, string? color = null)
         {
+            if (track == null) return new DiscordEmbedBuilder().WithTitle("Ошибка").Build();
+
+            var duration = track.Duration;
+            var progress = GetProgressBar(position, duration);
+
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
             {
                 Color = new DiscordColor(color ?? "#800080"),
@@ -49,17 +55,32 @@ namespace ReworkZenithBeep.Player
             };
             builder.WithThumbnail(GetThumbnail(track));
             builder.WithAuthor(
-                name: prefix is null ? track?.Title : $"{prefix}: {track?.Title}",
+                name: $"Playing now: {track?.Title}",
                 iconUrl: DEFAULT_THUMBNAIL,
                 url: $"{track?.Uri}"
             );
             builder.AddField("Author", track?.Author, true);
             builder.AddField("Duration", track?.Duration.ToString(@"hh\:mm\:ss"), true);
+            builder.WithDescription(progress);
+            builder.WithFooter($"⏳ {FormatTime(position)} / {FormatTime(duration)}");
 
             return builder;
         }
 
+        private static string GetProgressBar(TimeSpan position, TimeSpan duration, int barLength = 40)
+        {
+            int progressBlocks = (int)((position.TotalSeconds / duration.TotalSeconds) * barLength);
+            StringBuilder bar = new StringBuilder();
 
+            for (int i = 0; i < barLength; i++)
+            {
+                bar.Append(i == progressBlocks ? "🔵" : "▬");
+            }
+
+            return $"`{bar}`";
+        }
+
+        private static string FormatTime(TimeSpan time) => $"{time.Minutes:D2}:{time.Seconds:D2}";
         public static DiscordEmbed EmptyQueueEmbed() => new DiscordEmbedBuilder().WithDescription("Nothing is playing!").Build();
     }
 }
