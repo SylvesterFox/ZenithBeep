@@ -42,7 +42,14 @@ namespace ReworkZenithBeep.Player
                 .ConfigureAwait(false);
 
             var embedPlaying = EmbedsPlayer.NowPlayingEmbed(track?.Track, TimeSpan.Zero);
-            message = await _channel.SendMessageAsync(embedPlaying);
+            if (message != null) 
+            {
+                await message.ModifyAsync(embedPlaying);
+            } else 
+            {
+                message = await _channel.SendMessageAsync(embedPlaying);
+            }
+            
             StartProgressTimer(track?.Track);
         }
 
@@ -50,9 +57,20 @@ namespace ReworkZenithBeep.Player
             await base.NotifyTrackEndedAsync(trackQueue, reason);
         
             switch (reason) {
-                    case TrackEndReason.Finished:
-                        if (Queue.IsEmpty && CurrentTrack == null) await DisconnectAsync();
-                        break;
+                case TrackEndReason.Finished:
+                    if (Queue.IsEmpty && CurrentTrack == null)
+                    {
+                        if (message != null)
+                        {
+                            await message.DeleteAsync();
+                            await DisconnectAsync();
+                            return;
+                        }
+
+                        await DisconnectAsync();
+                        return;
+                    }
+                break;
             }
         }
 
@@ -61,7 +79,7 @@ namespace ReworkZenithBeep.Player
             if (track == null) return;
 
             _progressTimer?.Dispose();
-            _progressTimer = new System.Timers.Timer(5000);
+            _progressTimer = new System.Timers.Timer(1000);
             _progressTimer.Elapsed += async (sender, args) => await UpdateProgress(track);
             _progressTimer.Start();
         }
@@ -74,12 +92,22 @@ namespace ReworkZenithBeep.Player
                 return;
             }
 
+            if (_channel == null) {
+                return;
+            }
 
             var position = Position.Value.Position; 
             var duration = track.Duration;
 
             var embedUpdated = EmbedsPlayer.NowPlayingEmbed(track, position);
-            await message.ModifyAsync(embedUpdated);
+
+            try
+            {
+                await message.ModifyAsync(embedUpdated);
+            } catch (DSharpPlus.Exceptions.NotFoundException)
+            {
+                message = null;
+            }
         }
 
         public async Task ControlPauseAsync()

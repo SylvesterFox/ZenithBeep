@@ -68,6 +68,11 @@ namespace ReworkZenithBeep.Module.Music
         {
             await musicCommand.ClearAsync(new SlashContext(ctx));
         }
+        [SlashCommand("seek", "Seek track")]
+        public async Task SeekCommandAsync(InteractionContext ctx, [Option("Timecode", "Seek track")] string timeCode)
+        {
+            await musicCommand.SeekCommand(new SlashContext(ctx), timeCode);
+        }
     }
 
 }

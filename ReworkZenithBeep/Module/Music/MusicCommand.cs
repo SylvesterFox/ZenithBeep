@@ -80,16 +80,17 @@ namespace ReworkZenithBeep.Module.Music
             await context.RespondEmbedAsync(embed);
         }
 
-        public async Task LeaveAsync(CommonContext context)
+        public async Task LeaveAsync(CommonContext ctx)
         {
-            var player = await GetPlayerAsync(context, false);
+            await ctx.DeferAsync(true);
+            var player = await GetPlayerAsync(ctx, false);
             if (player == null) return;
-            var voiceChannel = context.Guild.GetChannel(player.VoiceChannelId);
+            var voiceChannel = ctx.Guild.GetChannel(player.VoiceChannelId);
 
             await player.DisconnectAsync();
             await player.DisposeAsync();
             var embed = EmbedTempalte.UniEmbed($"Leave from `{voiceChannel.Name}`. Bye!", "#7cf66e");
-            await context.RespondEmbedAsync(embed).ConfigureAwait(false);
+            await ctx.RespondEmbedAsync(embed).ConfigureAwait(false);
         }
 
         public async Task PlayAsync(CommonContext ctx, string query)
@@ -119,6 +120,8 @@ namespace ReworkZenithBeep.Module.Music
                 foreach (var track in searchResult.Tracks[1..]) { 
                     await player.Queue.AddAsync(new TrackQueueItem(track));
                 }
+                var embed = EmbedTempalte.UniEmbed($"Add queue playlist `{searchResult.Playlist.Name}`");
+                await ctx.RespondEmbedAsync(embed);
                 return;
             }
 
@@ -227,6 +230,7 @@ namespace ReworkZenithBeep.Module.Music
 
         public async Task ClearAsync(CommonContext ctx)
         {
+            await ctx.DeferAsync(ephemeral: true);
             var player = await GetPlayerAsync(ctx, false);
             if (player == null) return;
 
@@ -235,6 +239,50 @@ namespace ReworkZenithBeep.Module.Music
             var embed = EmbedTempalte.UniEmbed("Clear queue!");
             await ctx.RespondEmbedAsync(embed);
 
+        }
+
+        public async Task SeekCommand(CommonContext ctx, string timeCode)
+        {
+            await ctx.DeferAsync(ephemeral: true);
+            var player = await GetPlayerAsync(ctx);
+            if (player == null) return;
+
+            if (!TryParseTimeCode(timeCode, out TimeSpan newPosition))
+            {
+                var embedFormat = EmbedTempalte.UniEmbed("Invalid format. Use `/seek hh:mm:ss` or `/seek mm:ss` (e.g. `/seek 1:30` or `/seek 1:15:45`)");
+                await ctx.RespondEmbedAsync(embedFormat);
+                return;
+            }
+
+            if (newPosition > player.CurrentTrack?.Duration || newPosition < TimeSpan.Zero)
+            {
+                var embedPosError = EmbedTempalte.UniEmbed("The time indicated is outside the track boundaries.");
+                await ctx.RespondEmbedAsync(embedPosError);
+                return;
+            }
+
+            await player.SeekAsync(newPosition);
+            var embed = EmbedTempalte.UniEmbed($"Rewind to {newPosition.Hours:D2}:{newPosition.Minutes:D2}:{newPosition.Seconds:D2}");
+            await ctx.RespondEmbedAsync(embed);
+
+        }
+
+        private bool TryParseTimeCode(string input, out TimeSpan time)
+        {
+            time = TimeSpan.Zero;
+            var parts = input.Split(':');
+            if (parts.Length == 3 && int.TryParse(parts[0], out int hours) && int.TryParse(parts[1], out int minutes) && int.TryParse(parts[2], out int seconds))
+            {
+                time = new TimeSpan(hours, minutes, seconds);
+                return true;
+            }
+            else if (parts.Length == 2 && int.TryParse(parts[0], out minutes) && int.TryParse(parts[1], out seconds))
+            {
+                time = new TimeSpan(0, minutes, seconds);
+                return true;
+            }
+
+            return false;
         }
     }
 }

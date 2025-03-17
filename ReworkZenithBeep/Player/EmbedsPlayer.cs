@@ -67,7 +67,7 @@ namespace ReworkZenithBeep.Player
             return builder;
         }
 
-        private static string GetProgressBar(TimeSpan position, TimeSpan duration, int barLength = 40)
+        private static string GetProgressBar(TimeSpan position, TimeSpan duration, int barLength = 35)
         {
             int progressBlocks = (int)((position.TotalSeconds / duration.TotalSeconds) * barLength);
             StringBuilder bar = new StringBuilder();
@@ -80,7 +80,13 @@ namespace ReworkZenithBeep.Player
             return $"`{bar}`";
         }
 
-        private static string FormatTime(TimeSpan time) => $"{time.Minutes:D2}:{time.Seconds:D2}";
+        private static string FormatTime(TimeSpan time)
+        {
+            if (time.TotalHours >= 1)
+                return $"{(int)time.TotalHours:D2}:{time.Minutes:D2}:{time.Seconds:D2}";
+            else
+                return $"{time.Minutes:D2}:{time.Seconds:D2}"; 
+        }
         public static DiscordEmbed EmptyQueueEmbed() => new DiscordEmbedBuilder().WithDescription("Nothing is playing!").Build();
     }
 }

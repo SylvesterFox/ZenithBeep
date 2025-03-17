@@ -71,5 +71,11 @@ namespace ReworkZenithBeep.Module.Music
         {
             await musicCommand.ClearAsync(new NextCommand(ctx));
         }
+
+        [Command("seek")]
+        public async Task SeekCommandAsync(CommandContext ctx, string timeCode)
+        {
+            await musicCommand.SeekCommand(new NextCommand(ctx), timeCode);
+        }
     }
 }
