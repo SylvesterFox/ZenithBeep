@@ -17,50 +17,52 @@ namespace ReworkZenithBeep.Handler
 
         public async Task OnRoomStateUpdated(DiscordClient sender, VoiceStateUpdateEventArgs e)
         {
-            // Check if the user joined a voice channel
-            if (e.Before?.Channel == null && e.After?.Channel != null)
-            {
-                Console.WriteLine($"{e.User.Username} joined the voice channel {e.After.Channel.Name}");
-                var category = e.After.Channel.Parent;
-                var getLobby = await _repositoryRooms.GetLobbyDataChannel(e.Channel.Id);
-                if (getLobby != null)
+
+            var joinedChannel = e.After?.Channel;
+            var leftChannel = e.Before?.Channel;
+
+            var user = e.User;
+            var member = (DiscordMember)user;
+
+           if (joinedChannel != null)
+           {
+                var isLobby = await _repositoryRooms.GetLobbyDataChannel(joinedChannel.Id);
+                if (isLobby != null)
                 {
-                    var dataSettings = await _repositoryRooms.GetOrCreateSettingsRoom(e.User, $"{e.User.Username}'s Lair");
-                    var member = (DiscordMember) e.After.User;
+                    // Создание приватной комнаты
+                    var dataSettings = await _repositoryRooms.GetOrCreateSettingsRoom(user, $"{user.Username}'s Lair");
                     var bot = await e.Guild.GetMemberAsync(sender.CurrentUser.Id);
-                    var overWriteBuilderUser = new DiscordOverwriteBuilder[]
+                    var category = joinedChannel.Parent;
+
+                    var overwrites = new DiscordOverwriteBuilder[]
                     {
                         new DiscordOverwriteBuilder(member).Allow(Permissions.ManageChannels),
                         new DiscordOverwriteBuilder(bot).Allow(Permissions.ManageChannels),
                         new DiscordOverwriteBuilder(e.Guild.EveryoneRole).Allow(Permissions.UseVoice)
                     };
-                    var channel = await e.Guild.CreateVoiceChannelAsync(dataSettings.nameChannel, user_limit: dataSettings.limitChannel, overwrites:overWriteBuilderUser);
-                    var dataTemp = await _repositoryRooms.CreateTempRoom(e.User, channel);
+
+                    var newChannel = await e.Guild.CreateVoiceChannelAsync(
+                        dataSettings.nameChannel,
+                        user_limit: dataSettings.limitChannel,
+                        overwrites: overwrites
+                    );
 
                     if (category != null)
-                    {
-                        await channel.ModifyAsync(c => c.Parent = category);
-                    }
+                        await newChannel.ModifyAsync(c => c.Parent = category);
 
-                    if (!dataTemp)
-                    {
-                        Console.WriteLine("Not working");
-                        return;
-                    }
-
-                    await channel.PlaceMemberAsync(member);
+                    var success = await _repositoryRooms.CreateTempRoom(user, newChannel);
+                    if (success)
+                        await newChannel.PlaceMemberAsync(member);
+                    else
+                        Console.WriteLine("Failed to register temp room");
                 }
             }
-            // Check if the user left a voice channel
-            else if (e.Before?.Channel != null && e.After?.Channel == null)
-            {    
-                await DeleteRoom(e.Before.Channel);
-            }
-            // Check if the user switched voice channels
-            else if (e.Before?.Channel != null && e.After?.Channel != null && e.Before.Channel != e.After.Channel)
+
+            if (leftChannel != null)
             {
-                Console.WriteLine($"{e.User.Username} switched from {e.Before.Channel.Name} to {e.After.Channel.Name}");
-                await DeleteRoom(e.Before.Channel);
+                // Удаляем только если канал был временным
+                Console.WriteLine($"{user.Username} left or switched from {leftChannel.Name}");
+                await DeleteRoom(leftChannel);
             }
 
             await Task.CompletedTask;
