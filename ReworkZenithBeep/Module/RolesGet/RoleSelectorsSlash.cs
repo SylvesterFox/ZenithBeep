@@ -10,9 +10,9 @@ namespace ReworkZenithBeep.Module.RolesGet
     public class RoleSelectorsSlash : ApplicationCommandModule
     {
         private readonly RoleSelectors _roles;
-        public RoleSelectorsSlash(DataBot contextDB)
+        public RoleSelectorsSlash(DataBot contextDB, IServiceProvider service)
         {
-            _roles = new RoleSelectors(contextDB);
+            _roles = new RoleSelectors(contextDB, service);
         }
 
         [SlashCommand("roleselector-create", "Create role selector")]

@@ -2,6 +2,7 @@
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.SlashCommands;
 using ReworkZenithBeep.Settings;
 
 
@@ -56,9 +57,7 @@ namespace ReworkZenithBeep.Services
         internal DiscordEmbed GetEmbed()
         {
             return Pages.ElementAtOrDefault(CurrentPage - 1);
-        }
-
-     
+        } 
     }
 
     public class AppearanceOptions
@@ -266,6 +265,100 @@ namespace ReworkZenithBeep.Services
 
             return message;
 
+        }
+
+
+        public async Task<DiscordMessage> SendMessageInteractionAsync(InteractionContext ctx, PaginationMessage pagination, bool folloup = false)
+        {
+            DiscordMessage message;
+            var builder = new DiscordMessageBuilder();
+
+            if (pagination.Count > 1)
+            {
+                switch (pagination.Options.Style)
+                {
+                    case DisplayStyle.Full:
+                        builder.AddComponents(new DiscordComponent[]
+                        {
+                            new DiscordButtonComponent(ButtonStyle.Secondary, "first", "First"),
+                            new DiscordButtonComponent(ButtonStyle.Primary, "back", "Back"),
+                            new DiscordButtonComponent(ButtonStyle.Primary, "next", "Next"),
+                            new DiscordButtonComponent(ButtonStyle.Secondary, "last", "Last")
+                        });
+                        break;
+
+                    case DisplayStyle.Minimal:
+                        builder.AddComponents(new DiscordComponent[]
+                        {
+                            new DiscordButtonComponent(ButtonStyle.Primary, "back", "Back"),
+                            new DiscordButtonComponent(ButtonStyle.Danger, "stop", "X"),
+                            new DiscordButtonComponent(ButtonStyle.Primary, "next", "Next"),
+                        });
+                        break;
+
+                    case DisplayStyle.Selector:
+                        builder.AddComponents(new DiscordComponent[]
+                        {
+                            new DiscordButtonComponent(ButtonStyle.Primary, "back", "Back"),
+                            new DiscordButtonComponent(ButtonStyle.Success, "select", "Select"),
+                            new DiscordButtonComponent(ButtonStyle.Primary, "next", "Next"),
+                        });
+                        break;
+                }
+
+                if (folloup)
+                {
+                    await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(pagination.GetEmbed()).AddComponents(builder.Components));
+                    message = await ctx.GetOriginalResponseAsync();
+                }
+                else
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder().AddEmbed(pagination.GetEmbed()).AddComponents(builder.Components));
+                    message = await ctx.GetOriginalResponseAsync();
+                }
+            }
+            else
+            {
+                if (folloup)
+                {
+                    await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(pagination.GetEmbed()));
+                    message = await ctx.GetOriginalResponseAsync();
+                }
+                else
+                {
+                    await ctx.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder().AddEmbed(pagination.GetEmbed()));
+                    message = await ctx.GetOriginalResponseAsync();
+                }
+
+                return message;
+            }
+
+            messages.Add(message.Id, pagination);
+
+            if (pagination.Options.Timeout != TimeSpan.Zero)
+            {
+                Task _ = Task.Delay(pagination.Options.Timeout).ContinueWith(async t =>
+                {
+                    if (!messages.ContainsKey(message.Id))
+                    {
+                        return;
+                    }
+
+                    switch (pagination.Options.TimeoutAction)
+                    {
+                        case StopAction.DeleteMessage:
+                            await message.DeleteAsync();
+                            break;
+                        case StopAction.Clear:
+                            await message.DeleteAllReactionsAsync();
+                            break;
+                    }
+
+                    messages.Remove(message.Id);
+                });
+            }
+
+            return message;
         }
     }
 }
