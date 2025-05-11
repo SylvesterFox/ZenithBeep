@@ -11,8 +11,11 @@
 
   <ItemGroup>
     <Compile Remove="Database\**" />
+    <Compile Remove="Module\Others\**" />
     <EmbeddedResource Remove="Database\**" />
+    <EmbeddedResource Remove="Module\Others\**" />
     <None Remove="Database\**" />
+    <None Remove="Module\Others\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,10 +41,6 @@
 	<None Include="..\DataConfig\DataStringToken.json">
 		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	</None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Module\Others\" />
   </ItemGroup>
 
   <ItemGroup>

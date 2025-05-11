@@ -92,7 +92,7 @@ namespace ReworkZenithBeep.Player
                 return;
             }
 
-            if (_channel == null) {
+            if (_channel == null || !Position.HasValue) {
                 return;
             }
 

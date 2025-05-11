@@ -77,5 +77,11 @@ namespace ReworkZenithBeep.Module.Music
         {
             await musicCommand.SeekCommand(new NextCommand(ctx), timeCode);
         }
+
+        [Command("move")]
+        public async Task MoveCommandAsync(CommandContext ctx, int position)
+        {
+            await musicCommand.MoveTrackToTop(new NextCommand(ctx), position);
+        }
     }
 }

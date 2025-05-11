@@ -267,6 +267,38 @@ namespace ReworkZenithBeep.Module.Music
 
         }
 
+        public async Task MoveTrackToTop(CommonContext ctx, long trackId)
+        {
+            await ctx.DeferAsync(ephemeral: true);
+            var player = await GetPlayerAsync(ctx);
+            if (player == null) return;
+
+            var queue = player.Queue;
+
+            if (trackId < 1 || trackId > queue.Count)
+            {
+                var embed = EmbedTempalte.UniEmbed($"Invalid track number.");
+                await ctx.RespondEmbedAsync(embed);
+                return;
+            }
+
+            int actualIndex = (int)trackId - 1;
+
+            if (actualIndex == 0)
+            {
+                var alreadyTopEmbed = EmbedTempalte.UniEmbed("Track is already at the top of the queue");
+                await ctx.RespondEmbedAsync(alreadyTopEmbed);
+                return;
+            }
+
+            var trackToMove = queue[actualIndex];
+            await queue.RemoveAtAsync(actualIndex);
+            await queue.InsertAsync(0, trackToMove);
+
+            var movedEmbed = EmbedTempalte.UniEmbed($"Moved `{trackToMove.Track?.Title}` to the top of the queue.");
+            await ctx.RespondEmbedAsync(movedEmbed);
+        }
+
         private bool TryParseTimeCode(string input, out TimeSpan time)
         {
             time = TimeSpan.Zero;
