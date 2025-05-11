@@ -135,48 +135,51 @@ namespace ReworkZenithBeep.Module.RolesGet
 
 
         public async Task ListRolesCommand(InteractionContext ctx, ulong? messageid) {
-            await ctx.DeferAsync(false);
-            List<ItemRolesSelector> itemRoleslist;
-            var rolesByMessageId = new Dictionary<ulong, string>();
+            try
+            {
+                await ctx.DeferAsync(false);
 
-            if (messageid != null) {
-                itemRoleslist = await _dbContext.GetListRoleSelector(ctx.Guild, messageid);
-            } else {
-                itemRoleslist = await _dbContext.GetListRoleSelector(ctx.Guild);
-            }
-
-            var embed = new DiscordEmbedBuilder {
-                Title = "List roles selector",
-                Color = DiscordColor.Blurple
-            };
+                List<ItemRolesSelector> itemRoleslist = messageid != null
+                    ? await _dbContext.GetListRoleSelector(ctx.Guild, messageid)
+                    : await _dbContext.GetListRoleSelector(ctx.Guild);
 
 
-            foreach (var itemRole in itemRoleslist) {
-                ulong dataIdmessage = itemRole.messageId;
-                string roleInfo = $"**Delete key**: `{itemRole.keyId}` -- **Role:** <@&{itemRole.roleId}> -- **Emoji:** {itemRole.emojiButton}";
-
-                if (rolesByMessageId.ContainsKey(dataIdmessage)) {
-                    rolesByMessageId[dataIdmessage] += "\n" + roleInfo;
-                } else {
-                    rolesByMessageId[dataIdmessage] = roleInfo;
-                }
-            }
-
-            var pagination = new PaginationMessage(
-                EmbedExtensions.PageFildRoleEmbed(rolesByMessageId),
-                title: "Role List",
-                embedColor: "#800080",
-                user: ctx.Member,
-                ico: null,
-                options: new AppearanceOptions
+                var rolesByMessageId = new Dictionary<ulong, string>();
+                foreach (var itemRole in itemRoleslist)
                 {
-                    Timeout = TimeSpan.FromMinutes(5),
-                    Style = DisplayStyle.Minimal,
-                    OnStop = StopAction.DeleteMessage
-                });
+                    string roleInfo = $"**Delete key**: `{itemRole.keyId}` — **Role:** <@&{itemRole.roleId}> — **Emoji:** {itemRole.emojiButton}";
 
-            await Pagination.SendMessageInteractionAsync(ctx, pagination, folloup: true);
+                    if (rolesByMessageId.TryGetValue(itemRole.messageId, out var existing))
+                    {
+                        rolesByMessageId[itemRole.messageId] = existing + "\n" + roleInfo;
+                    }
+                    else
+                    {
+                        rolesByMessageId[itemRole.messageId] = roleInfo;
+                    }
+                }
 
+                var pagination = new PaginationMessage(
+                    EmbedExtensions.PageFildRoleEmbed(rolesByMessageId, ctx.Guild.Id, ctx.Channel.Id),
+                    title: "Role List",
+                    embedColor: "#800080",
+                    user: ctx.Member,
+                    options: new AppearanceOptions
+                    {
+                        Timeout = TimeSpan.FromMinutes(5),
+                        Style = DisplayStyle.Minimal,
+                        OnStop = StopAction.DeleteMessage
+                    });
+
+                await Pagination.SendMessageInteractionAsync(ctx, pagination, true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ListRolesCommand: {ex}");
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                    .WithContent("An error occurred while processing your request.")
+                    .AsEphemeral(true));
+            }
         }
     }
 }

@@ -143,6 +143,9 @@ namespace ReworkZenithBeep.Services
                                 case StopAction.DeleteMessage:
                                     await args.Message.DeleteAsync();
                                     return;
+                                case StopAction.Clear:
+                                    await args.Message.DeleteAllReactionsAsync();
+                                    break;
                             }
                             break;
 
@@ -154,7 +157,6 @@ namespace ReworkZenithBeep.Services
                     if (responseBuilder != null)
                     {
                         await args.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, responseBuilder);
-                        Console.WriteLine();
                     }
                 }
                 catch (DSharpPlus.Exceptions.BadRequestException ex)
