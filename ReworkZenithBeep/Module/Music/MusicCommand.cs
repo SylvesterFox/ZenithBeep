@@ -145,7 +145,7 @@ namespace ReworkZenithBeep.Module.Music
 
             if (player.CurrentItem != null)
             {
-                var embed_skip = EmbedTempalte.UniEmbed($"Skip `{player.CurrentTrack?.Title}");
+                var embed_skip = EmbedTempalte.UniEmbed($"Skip `{player.CurrentTrack?.Title}`");
                 await ctx.RespondEmbedAsync(embed_skip);
                 await player.SkipAsync((int)count);
                 return;
