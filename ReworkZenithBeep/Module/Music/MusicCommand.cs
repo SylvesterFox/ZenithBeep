@@ -1,4 +1,5 @@
-﻿using Lavalink4NET;
+﻿using DSharpPlus.Entities;
+using Lavalink4NET;
 using Lavalink4NET.Clients;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
@@ -17,7 +18,7 @@ namespace ReworkZenithBeep.Module.Music
         public PaginationService Pagination;
 
         private readonly IAudioService audioService;
-        private static MusicCommand instance;
+        private static MusicCommand? instance;
 
         private MusicCommand(IAudioService audioService, IServiceProvider service)
         {
@@ -62,9 +63,11 @@ namespace ReworkZenithBeep.Module.Music
             {
                 var message = result.Status switch
                 {
-                    PlayerRetrieveStatus.UserNotInVoiceChannel => "You are not connected to a voice channel",
-                    _ => "A unknown error happened"
+                    PlayerRetrieveStatus.UserNotInVoiceChannel => new DiscordEmbedBuilder().WithTitle("You are not connected to a voice channel").WithColor(DiscordColor.Red).Build(),
+                    _ => new DiscordEmbedBuilder().WithTitle("A unknown error happened").WithColor(DiscordColor.Red).Build()
                 };
+                await ctx.RespondEmbedAsync(message).ConfigureAwait(false);
+                return null;
             }
 
             return result.Player;
@@ -77,16 +80,17 @@ namespace ReworkZenithBeep.Module.Music
             await context.RespondEmbedAsync(embed);
         }
 
-        public async Task LeaveAsync(CommonContext context)
+        public async Task LeaveAsync(CommonContext ctx)
         {
-            var player = await GetPlayerAsync(context, false);
+            await ctx.DeferAsync(true);
+            var player = await GetPlayerAsync(ctx, false);
             if (player == null) return;
-            var voiceChannel = context.Guild.GetChannel(player.VoiceChannelId);
+            var voiceChannel = ctx.Guild.GetChannel(player.VoiceChannelId);
 
             await player.DisconnectAsync();
             await player.DisposeAsync();
             var embed = EmbedTempalte.UniEmbed($"Leave from `{voiceChannel.Name}`. Bye!", "#7cf66e");
-            await context.RespondEmbedAsync(embed).ConfigureAwait(false);
+            await ctx.RespondEmbedAsync(embed).ConfigureAwait(false);
         }
 
         public async Task PlayAsync(CommonContext ctx, string query)
@@ -102,6 +106,11 @@ namespace ReworkZenithBeep.Module.Music
             {;
                 var embed = EmbedTempalte.UniEmbed($"Nothing was found for {query}.");
                 await ctx.RespondEmbedAsync(embed);
+                if (player.CurrentTrack == null)
+                {
+                    await player.DisconnectAsync();
+                }
+
                 return;
             }
 
@@ -111,6 +120,8 @@ namespace ReworkZenithBeep.Module.Music
                 foreach (var track in searchResult.Tracks[1..]) { 
                     await player.Queue.AddAsync(new TrackQueueItem(track));
                 }
+                var embed = EmbedTempalte.UniEmbed($"Add queue playlist `{searchResult.Playlist.Name}`");
+                await ctx.RespondEmbedAsync(embed);
                 return;
             }
 
@@ -134,7 +145,7 @@ namespace ReworkZenithBeep.Module.Music
 
             if (player.CurrentItem != null)
             {
-                var embed_skip = EmbedTempalte.UniEmbed($"Skip `{player.CurrentTrack.Title}");
+                var embed_skip = EmbedTempalte.UniEmbed($"Skip `{player.CurrentTrack?.Title}");
                 await ctx.RespondEmbedAsync(embed_skip);
                 await player.SkipAsync((int)count);
                 return;
@@ -189,7 +200,7 @@ namespace ReworkZenithBeep.Module.Music
 
             if(player.Queue.Count > position - 1)
             {
-                var embed = EmbedTempalte.UniEmbed($"`{position}.` {player.Queue[(int)position - 1].Track.Title} remove from queue");
+                var embed = EmbedTempalte.UniEmbed($"`{position}.` {player.Queue[(int)position - 1].Track?.Title} remove from queue");
                 await ctx.RespondEmbedAsync(embed);
                 await player.Queue.RemoveAtAsync((int)position - 1).ConfigureAwait(false);
             } else
@@ -219,6 +230,7 @@ namespace ReworkZenithBeep.Module.Music
 
         public async Task ClearAsync(CommonContext ctx)
         {
+            await ctx.DeferAsync(ephemeral: true);
             var player = await GetPlayerAsync(ctx, false);
             if (player == null) return;
 
@@ -227,6 +239,82 @@ namespace ReworkZenithBeep.Module.Music
             var embed = EmbedTempalte.UniEmbed("Clear queue!");
             await ctx.RespondEmbedAsync(embed);
 
+        }
+
+        public async Task SeekCommand(CommonContext ctx, string timeCode)
+        {
+            await ctx.DeferAsync(ephemeral: true);
+            var player = await GetPlayerAsync(ctx);
+            if (player == null) return;
+
+            if (!TryParseTimeCode(timeCode, out TimeSpan newPosition))
+            {
+                var embedFormat = EmbedTempalte.UniEmbed("Invalid format. Use `/seek hh:mm:ss` or `/seek mm:ss` (e.g. `/seek 1:30` or `/seek 1:15:45`)");
+                await ctx.RespondEmbedAsync(embedFormat);
+                return;
+            }
+
+            if (newPosition > player.CurrentTrack?.Duration || newPosition < TimeSpan.Zero)
+            {
+                var embedPosError = EmbedTempalte.UniEmbed("The time indicated is outside the track boundaries.");
+                await ctx.RespondEmbedAsync(embedPosError);
+                return;
+            }
+
+            await player.SeekAsync(newPosition);
+            var embed = EmbedTempalte.UniEmbed($"Rewind to {newPosition.Hours:D2}:{newPosition.Minutes:D2}:{newPosition.Seconds:D2}");
+            await ctx.RespondEmbedAsync(embed);
+
+        }
+
+        public async Task MoveTrackToTop(CommonContext ctx, long trackId)
+        {
+            await ctx.DeferAsync(ephemeral: true);
+            var player = await GetPlayerAsync(ctx);
+            if (player == null) return;
+
+            var queue = player.Queue;
+
+            if (trackId < 1 || trackId > queue.Count)
+            {
+                var embed = EmbedTempalte.UniEmbed($"Invalid track number.");
+                await ctx.RespondEmbedAsync(embed);
+                return;
+            }
+
+            int actualIndex = (int)trackId - 1;
+
+            if (actualIndex == 0)
+            {
+                var alreadyTopEmbed = EmbedTempalte.UniEmbed("Track is already at the top of the queue");
+                await ctx.RespondEmbedAsync(alreadyTopEmbed);
+                return;
+            }
+
+            var trackToMove = queue[actualIndex];
+            await queue.RemoveAtAsync(actualIndex);
+            await queue.InsertAsync(0, trackToMove);
+
+            var movedEmbed = EmbedTempalte.UniEmbed($"Moved `{trackToMove.Track?.Title}` to the top of the queue.");
+            await ctx.RespondEmbedAsync(movedEmbed);
+        }
+
+        private bool TryParseTimeCode(string input, out TimeSpan time)
+        {
+            time = TimeSpan.Zero;
+            var parts = input.Split(':');
+            if (parts.Length == 3 && int.TryParse(parts[0], out int hours) && int.TryParse(parts[1], out int minutes) && int.TryParse(parts[2], out int seconds))
+            {
+                time = new TimeSpan(hours, minutes, seconds);
+                return true;
+            }
+            else if (parts.Length == 2 && int.TryParse(parts[0], out minutes) && int.TryParse(parts[1], out seconds))
+            {
+                time = new TimeSpan(0, minutes, seconds);
+                return true;
+            }
+
+            return false;
         }
     }
 }

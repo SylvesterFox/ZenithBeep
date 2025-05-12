@@ -2,27 +2,32 @@
 
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
+using Microsoft.Extensions.DependencyInjection;
 using ReworkZenithBeep.Data;
 using ReworkZenithBeep.Data.Models.items;
+using ReworkZenithBeep.Extensions;
 using ReworkZenithBeep.MessageEmbeds;
+using ReworkZenithBeep.Services;
 using ReworkZenithBeep.Settings;
 
 namespace ReworkZenithBeep.Module.RolesGet
 {
     public partial class RoleSelectors
     {
+        public PaginationService Pagination;
         private static RoleSelectors instance;
         private readonly DataBot _dbContext;
-        public RoleSelectors(DataBot dbContext)
+        public RoleSelectors(DataBot dbContext, IServiceProvider service)
         {
             _dbContext = dbContext;
+            Pagination = service.GetRequiredService<PaginationService>();
         }
 
-        public static RoleSelectors GetInstance(DataBot dbContext)
+        public static RoleSelectors GetInstance(DataBot dbContext, IServiceProvider service)
         {
             if (instance == null)
             {
-                instance = new RoleSelectors(dbContext);
+                instance = new RoleSelectors(dbContext, service);
             }
             return instance;
         }
@@ -130,38 +135,51 @@ namespace ReworkZenithBeep.Module.RolesGet
 
 
         public async Task ListRolesCommand(InteractionContext ctx, ulong? messageid) {
-            await ctx.DeferAsync(true);
-            List<ItemRolesSelector> itemRoleslist;
-            var rolesByMessageId = new Dictionary<ulong, string>();
+            try
+            {
+                await ctx.DeferAsync(false);
 
-            if (messageid != null) {
-                itemRoleslist = await _dbContext.GetListRoleSelector(ctx.Guild, messageid);
-            } else {
-                itemRoleslist = await _dbContext.GetListRoleSelector(ctx.Guild);
-            }
-
-            var embed = new DiscordEmbedBuilder {
-                Title = "List roles selector",
-                Color = DiscordColor.Blurple
-            };
+                List<ItemRolesSelector> itemRoleslist = messageid != null
+                    ? await _dbContext.GetListRoleSelector(ctx.Guild, messageid)
+                    : await _dbContext.GetListRoleSelector(ctx.Guild);
 
 
-            foreach (var itemRole in itemRoleslist) {
-                ulong dataIdmessage = itemRole.messageId;
-                string roleInfo = $"Delete key: {itemRole.keyId} -- Role: <@&{itemRole.roleId}> -- Emoji: {itemRole.emojiButton}";
+                var rolesByMessageId = new Dictionary<ulong, string>();
+                foreach (var itemRole in itemRoleslist)
+                {
+                    string roleInfo = $"**Delete key**: `{itemRole.keyId}` — **Role:** <@&{itemRole.roleId}> — **Emoji:** {itemRole.emojiButton}";
 
-                if (rolesByMessageId.ContainsKey(dataIdmessage)) {
-                    rolesByMessageId[dataIdmessage] += "\n" + roleInfo;
-                } else {
-                    rolesByMessageId[dataIdmessage] = roleInfo;
+                    if (rolesByMessageId.TryGetValue(itemRole.messageId, out var existing))
+                    {
+                        rolesByMessageId[itemRole.messageId] = existing + "\n" + roleInfo;
+                    }
+                    else
+                    {
+                        rolesByMessageId[itemRole.messageId] = roleInfo;
+                    }
                 }
-            }
 
-            foreach (var entry in rolesByMessageId) {
-                embed.AddField($"Message ID: {entry.Key}", entry.Value);
-            }
+                var pagination = new PaginationMessage(
+                    EmbedExtensions.PageFildRoleEmbed(rolesByMessageId, ctx.Guild.Id, ctx.Channel.Id),
+                    title: "Role List",
+                    embedColor: "#800080",
+                    user: ctx.Member,
+                    options: new AppearanceOptions
+                    {
+                        Timeout = TimeSpan.FromMinutes(5),
+                        Style = DisplayStyle.Minimal,
+                        OnStop = StopAction.DeleteMessage
+                    });
 
-            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
+                await Pagination.SendMessageInteractionAsync(ctx, pagination, true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ListRolesCommand: {ex}");
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                    .WithContent("An error occurred while processing your request.")
+                    .AsEphemeral(true));
+            }
         }
     }
 }
