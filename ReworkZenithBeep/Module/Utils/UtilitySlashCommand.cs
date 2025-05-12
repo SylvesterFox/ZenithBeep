@@ -1,4 +1,5 @@
-﻿using DSharpPlus.SlashCommands;
+﻿using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
 using ReworkZenithBeep.Data;
 using ReworkZenithBeep.Settings;
 
@@ -30,6 +31,15 @@ namespace ReworkZenithBeep.Module.Utils
         [SlashCommand("help", "Get list commands")]
         public async Task HelpAsync(InteractionContext ctx) {
            await UtilityCommand.HelpCommand(ctx);
+        }
+
+        [SlashCommand("messages-clean", "Delete messages from channel")]
+        [SlashCommandPermissions(DSharpPlus.Permissions.Administrator)]
+        public async Task MessagesCleanAsync(InteractionContext ctx,
+            [Option("count", "Count of messages to delete")] long count, 
+            [Option("Member", "Delete message from user only")] DiscordUser member = null)
+        {
+            await UtilityCommand.CleanCommand(ctx, (int)count, member);
         }
 
     }

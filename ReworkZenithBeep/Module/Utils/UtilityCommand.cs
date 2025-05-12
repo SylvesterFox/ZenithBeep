@@ -20,6 +20,13 @@ namespace ReworkZenithBeep.Module.Utils
             return instance;
         }
 
+        public static async Task<List<DiscordMessage>> GetUserMessageFromChannel(DiscordChannel channel, ulong userId, int count)
+        {
+            var messages = await channel.GetMessagesAsync(count);
+            var userMessages = messages.Where(m => m.Author.Id == userId).ToList();
+            return userMessages;
+        }
+
         public static async Task PingCommand(InteractionContext ctx)
         {
             await ctx.DeferAsync();
@@ -76,6 +83,58 @@ namespace ReworkZenithBeep.Module.Utils
             }
 
             await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embedContent));
+        }
+
+        public static async Task CleanCommand(InteractionContext ctx, int count, DiscordUser member = null)
+        {
+            await ctx.DeferAsync(true);
+
+            var embedSuccess = new EmbedTempalte.DetailedEmbedContent
+            {
+                Color = new DiscordColor("#fd5531"),
+                Description = $"You can delete {count} messages",
+                Title = "Clean Command"
+            };
+            var embed = EmbedTempalte.DetaliedEmbed(embedSuccess);
+
+            try
+            {
+                IReadOnlyList<DiscordMessage> messageToDelete;
+
+                if (member != null)
+                {
+                    var userMessages = await GetUserMessageFromChannel(ctx.Channel, member.Id, count);
+                    messageToDelete = userMessages
+                        .Where(m => m.Timestamp > DateTimeOffset.UtcNow.AddDays(-14))
+                        .OrderByDescending(m => m.Timestamp)
+                        .Take(count)
+                        .ToList();
+                } else
+                {
+                    var allMessages = await ctx.Channel.GetMessagesAsync(count);
+                    messageToDelete = allMessages
+                        .Where(m => m.Timestamp > DateTimeOffset.UtcNow.AddDays(-14))
+                        .OrderByDescending(m => m.Timestamp)
+                        .Take(count)
+                        .ToList();
+                }
+
+                if (messageToDelete.Count > 0)
+                {
+                    foreach (var message in messageToDelete)
+                    {
+                        await message.DeleteAsync();
+                    }
+                }
+
+                //await ctx.Channel.DeleteMessagesAsync(ctx.Channel.GetMessagesAsync(count).Result);
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            
         }
 
     }
