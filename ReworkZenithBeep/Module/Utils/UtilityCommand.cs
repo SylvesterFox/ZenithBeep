@@ -20,12 +20,6 @@ namespace ReworkZenithBeep.Module.Utils
             return instance;
         }
 
-        public static async Task<List<DiscordMessage>> GetUserMessageFromChannel(DiscordChannel channel, ulong userId, int count)
-        {
-            var messages = await channel.GetMessagesAsync(count);
-            var userMessages = messages.Where(m => m.Author.Id == userId).ToList();
-            return userMessages;
-        }
 
         public static async Task PingCommand(InteractionContext ctx)
         {
@@ -103,8 +97,9 @@ namespace ReworkZenithBeep.Module.Utils
 
                 if (member != null)
                 {
-                    var userMessages = await GetUserMessageFromChannel(ctx.Channel, member.Id, count);
+                    var userMessages = await ctx.Channel.GetMessagesAsync(250);
                     messageToDelete = userMessages
+                        .Where(m => m.Author.Id == member.Id)
                         .Where(m => m.Timestamp > DateTimeOffset.UtcNow.AddDays(-14))
                         .OrderByDescending(m => m.Timestamp)
                         .Take(count)
@@ -127,7 +122,6 @@ namespace ReworkZenithBeep.Module.Utils
                     }
                 }
 
-                //await ctx.Channel.DeleteMessagesAsync(ctx.Channel.GetMessagesAsync(count).Result);
                 await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
             }
             catch (Exception e)
