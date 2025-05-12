@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Threading.Channels;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using ReworkZenithBeep.MessageEmbeds;
@@ -91,44 +92,43 @@ namespace ReworkZenithBeep.Module.Utils
             };
             var embed = EmbedTempalte.DetaliedEmbed(embedSuccess);
 
-            try
+            IReadOnlyList<DiscordMessage> messageToDelete;
+
+            if (member != null)
             {
-                IReadOnlyList<DiscordMessage> messageToDelete;
+                var userMessages = await ctx.Channel.GetMessagesAsync(250);
+                messageToDelete = userMessages
+                    .Where(m => m.Author.Id == member.Id)
+                    .Take(count)
+                    .ToList();
+            }
+            else
+            {
+                var allMessages = await ctx.Channel.GetMessagesAsync(count);
+                messageToDelete = allMessages
+                    .Take(count)
+                    .ToList();
+            }
 
-                if (member != null)
+            if (messageToDelete.Count > 0)
+            {
+                foreach (var message in messageToDelete)
                 {
-                    var userMessages = await ctx.Channel.GetMessagesAsync(250);
-                    messageToDelete = userMessages
-                        .Where(m => m.Author.Id == member.Id)
-                        .Where(m => m.Timestamp > DateTimeOffset.UtcNow.AddDays(-14))
-                        .OrderByDescending(m => m.Timestamp)
-                        .Take(count)
-                        .ToList();
-                } else
-                {
-                    var allMessages = await ctx.Channel.GetMessagesAsync(count);
-                    messageToDelete = allMessages
-                        .Where(m => m.Timestamp > DateTimeOffset.UtcNow.AddDays(-14))
-                        .OrderByDescending(m => m.Timestamp)
-                        .Take(count)
-                        .ToList();
-                }
-
-                if (messageToDelete.Count > 0)
-                {
-                    foreach (var message in messageToDelete)
+                    try
                     {
                         await message.DeleteAsync();
+                        await Task.Delay(1000); // задержка, чтобы избежать rate-limit
                     }
-                }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка при удалении: {ex.Message}");
+                    }
 
-                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
+                }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            
+
+            await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder().AddEmbed(embed));
+
         }
 
     }
