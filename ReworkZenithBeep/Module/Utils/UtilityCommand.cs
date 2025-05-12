@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Threading.Channels;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using ReworkZenithBeep.MessageEmbeds;
