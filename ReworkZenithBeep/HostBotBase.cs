@@ -20,8 +20,8 @@ namespace ReworkZenithBeep
 {
     internal class HostBotBase : BackgroundService
     {
-        public static IAudioService AudioService { get; private set; }
-        public static PaginationService Pagination { get; private set; }
+        public static  IAudioService? AudioService { get; private set; }
+        public static PaginationService? Pagination { get; private set; }
 
         private readonly IServiceProvider _serviceProvider;
         private readonly DiscordClient _discordClient;
@@ -46,8 +46,6 @@ namespace ReworkZenithBeep
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             
-
-
             var slash = _discordClient
                 .UseSlashCommands(new SlashCommandsConfiguration
                 {
@@ -69,7 +67,7 @@ namespace ReworkZenithBeep
 
 
             // Using database
-            if (_botConfig.NODB_MODE != true)
+            if (!_botConfig.NODB_MODE)
             {
                 // Command prefix
                 next.RegisterCommands<UtilityForDataNextCommand>();
@@ -79,7 +77,7 @@ namespace ReworkZenithBeep
             }
 
             // Audio command
-            if (_botConfig.AUDIOSERICES != true)
+            if (!_botConfig.AUDIOSERICES)
             {
                 // Comannd prefix
                 next.RegisterCommands<MusicNextCommand>();
@@ -92,8 +90,7 @@ namespace ReworkZenithBeep
 
             var readyTaskCompletionSource = new TaskCompletionSource();
 
-            
-
+            // Client ready
             async Task SetResult(DiscordClient client, ReadyEventArgs eventArgs)
             {
                 var db = _serviceProvider.GetRequiredService<BotContext>();
