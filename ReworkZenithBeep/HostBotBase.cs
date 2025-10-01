@@ -25,7 +25,7 @@ namespace ReworkZenithBeep
 
         private readonly IServiceProvider _serviceProvider;
         private readonly DiscordClient _discordClient;
-        private readonly BotConfig _botConfig;
+        private static BotConfig CONFIG = Program.CONFIG;
 
         public HostBotBase(IServiceProvider serviceProvider, DiscordClient discord, DataBot dataBot)
         {
@@ -34,8 +34,7 @@ namespace ReworkZenithBeep
 
             this._serviceProvider = serviceProvider;
             this._discordClient = discord;
-            _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
-            if (_botConfig.AUDIOSERICES != true)
+            if (CONFIG.AUDIOSERICES != true)
             {
                 AudioService = serviceProvider.GetRequiredService<IAudioService>();
             }
@@ -67,7 +66,7 @@ namespace ReworkZenithBeep
 
 
             // Using database
-            if (!_botConfig.NODB_MODE)
+            if (!CONFIG.NODB_MODE)
             {
                 // Command prefix
                 next.RegisterCommands<UtilityForDataNextCommand>();
@@ -77,7 +76,7 @@ namespace ReworkZenithBeep
             }
 
             // Audio command
-            if (!_botConfig.AUDIOSERICES)
+            if (!CONFIG.AUDIOSERICES)
             {
                 // Comannd prefix
                 next.RegisterCommands<MusicNextCommand>();

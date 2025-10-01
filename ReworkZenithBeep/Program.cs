@@ -13,16 +13,10 @@ namespace ReworkZenithBeep
 {
     internal class Program
     {
-        public static BotConfig _botConfig;
+        public static BotConfig CONFIG = SettingsManager.LoadFromEnv<BotConfig>();
         static void Main(string[] args)
         {
             var dataConfig = DataConfig.InitDataConfig();
-
-            if (!SettingsManager.Instance.LoadConfiguration())
-            {
-                Console.WriteLine("Configuration is not loaded\nPress any key to exit...");
-                return;
-            }
 
             if (dataConfig == null)
             {
@@ -30,51 +24,57 @@ namespace ReworkZenithBeep
                 return;
             }
 
-            _botConfig = SettingsManager.Instance.LoadedConfig;
+
+            if (string.IsNullOrEmpty(CONFIG.TOKEN))
+            {
+                Console.WriteLine("Bot token is not loaded");
+                return;
+            }
 
             var builder = new HostApplicationBuilder();
-            
-            if (_botConfig.NODB_MODE != true) {
-                
+
+            if (CONFIG.NODB_MODE != true)
+            {
+
                 builder.Services.AddDbContextFactory<BotContext>(o => o.UseNpgsql(dataConfig, x =>
                     x.MigrationsAssembly("ReworkZenithBeep.Data.Migrations")));
                 builder.Services.AddSingleton<DataBot>();
             }
-           
+
             builder.Services.AddHostedService<HostBotBase>();
             builder.Services.AddSingleton<DiscordClient>();
             builder.Services.AddSingleton(new DiscordConfiguration
             {
                 AutoReconnect = true,
-                Token = _botConfig.TOKEN,
+                Token = CONFIG.TOKEN,
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.All
             });
 
-            if (_botConfig.AUDIOSERICES != true)
+            if (CONFIG.AUDIOSERICES != true)
             {
                 builder.Services.AddLavalink();
                 builder.Services.ConfigureLavalink(options =>
                 {
-                    options.Passphrase = _botConfig.LAVALINK_PASSWORD;
-                    options.BaseAddress = new Uri(_botConfig.LAVALINK_ADDRES);
-                    options.WebSocketUri = new Uri(_botConfig.LAVALINK_WEBSOCKET);
+                    options.Passphrase = CONFIG.LAVALINK_PASSWORD;
+                    options.BaseAddress = new Uri(CONFIG.LAVALINK_ADDRES);
+                    options.WebSocketUri = new Uri(CONFIG.LAVALINK_WEBSOCKET);
                     options.ReadyTimeout = TimeSpan.FromSeconds(10);
                 });
             }
-            
+
             builder.Services.AddSingleton<PaginationService>();
             builder.Services.AddSingleton<RoleSelectorsHandler>();
 
 
             builder.Services.AddLogging(s => s.AddConsole()
-            #if DEBUG
+#if DEBUG
             .SetMinimumLevel(LogLevel.Trace)
-            #else            
+#else
             .SetMinimumLevel(LogLevel.Information)
-            #endif
+#endif
             );
-            
+
 
             var host = builder.Build();
             AppDomain.CurrentDomain.ProcessExit += (object? _, EventArgs _) => { host.Dispose(); };
