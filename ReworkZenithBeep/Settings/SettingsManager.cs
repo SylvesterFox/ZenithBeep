@@ -1,51 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace ReworkZenithBeep.Settings
 {
-    public class SettingsManager
+    public static class SettingsManager
     {
-        public BotConfig LoadedConfig = new BotConfig();
-
-        public const string BOT_NAME = "ZenithBeep";
-        public const string ENV_FILE = ".env";
-
-        public readonly string BotDataDirectory;
-
-        private SettingsManager()
+         public static T LoadFromEnv<T>() where T : new()
         {
-
-            BotDataDirectory = Directory.GetCurrentDirectory();
-        }
-
-
-        public bool LoadConfiguration()
-        {
-            string configFilePath = Path.Combine(BotDataDirectory, ENV_FILE);
-            try
+            DotNetEnv.Env.Load();
+            var config = new T();
+            var props = typeof(T).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            foreach (var prop in props)
             {
-                Directory.CreateDirectory(BotDataDirectory);
-                if (!File.Exists(configFilePath)) return false;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
+                string? envValue = Environment.GetEnvironmentVariable(prop.Name);
 
-            LoadedConfig = EnvSerializer.Deserialize(configFilePath);
-            return LoadedConfig != null;
-        }
+                if (string.IsNullOrEmpty(envValue)) continue;
 
-        private static SettingsManager? _PrivateInstance;
-        public static SettingsManager Instance
-        {
-            get
-            {
-                return _PrivateInstance ??= new SettingsManager();
+                try
+                {
+                    object value = prop.PropertyType switch
+                    {
+                        Type t when t == typeof(int) => int.Parse(envValue),
+                        Type t when t == typeof(bool) => bool.Parse(envValue),
+                        Type t when t == typeof(double) => double.Parse(envValue),
+                        Type t when t == typeof(float) => float.Parse(envValue),
+                        Type t when t == typeof(long) => long.Parse(envValue),
+                        Type t when t == typeof(string) => envValue,
+                        _ => Convert.ChangeType(envValue, prop.PropertyType)
+                    };
+                    prop.SetValue(config, value);
+                }
+                catch
+                {
+                    Console.WriteLine($"Не удалось конвертировать переменную {prop.Name}");
+                }
             }
+            return config;
         }
 
     }

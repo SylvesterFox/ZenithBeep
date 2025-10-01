@@ -34,9 +34,12 @@ namespace ReworkZenithBeep
 
         private readonly IServiceProvider _serviceProvider;
         private readonly DiscordClient _discordClient;
-        private readonly BotConfig _botConfig;
+        private readonly BotConfig CONFIG = Program.CONFIG;
         
+        private RoleSelectorsHandler? _roleSelectorHandler;
+        private VoiceRoomsHandler? _voiceRoomsHandler;
 
+        
         public HostBotBase(IServiceProvider serviceProvider, DiscordClient discord, DataBot dataBot)
         {
             ArgumentNullException.ThrowIfNull(serviceProvider);
@@ -44,13 +47,13 @@ namespace ReworkZenithBeep
 
             _serviceProvider = serviceProvider;
             _discordClient = discord;
-            _botConfig = Settings.SettingsManager.Instance.LoadedConfig;
 
-            if (_botConfig.AUDIO_SERVICES != true)
+
+            if (CONFIG.AUDIO_SERVICES)
             {
                 AudioService = serviceProvider.GetRequiredService<IAudioService>();
             }
-            
+
             Pagination = serviceProvider.GetRequiredService<PaginationService>();
         }
 
@@ -110,7 +113,7 @@ namespace ReworkZenithBeep
 
 
             // Audio command
-            if (_botConfig.AUDIO_SERVICES != true)
+            if (CONFIG.AUDIO_SERVICES)
             {
                 // Comannd prefix
                 next.RegisterCommands<MusicNextCommand>();
@@ -120,7 +123,7 @@ namespace ReworkZenithBeep
             }
 
             // Using database
-            if (_botConfig.NODB_MODE != true)
+            if (CONFIG.NODB_MODE != true)
             {
                 // Command prefix
                 next.RegisterCommands<UtilityForDataNextCommand>();
@@ -129,13 +132,13 @@ namespace ReworkZenithBeep
                 slash.RegisterCommands<RoleSelectorsSlash>();
                 slash.RegisterCommands<RoomsSelectorsSlash>();
                 // Events
-                var roleSelectorHandler = new RoleSelectorsHandler(_serviceProvider);
-                var voiceRoomsHandler = new VoiceRoomsHandler(_serviceProvider);
+                _roleSelectorHandler = new RoleSelectorsHandler(_serviceProvider);
+                _voiceRoomsHandler = new VoiceRoomsHandler(_serviceProvider);
                 
 
-                _discordClient.MessageReactionAdded += roleSelectorHandler.MessageReactionAdd;
-                _discordClient.MessageReactionRemoved += roleSelectorHandler.MessageReactionRemove;
-                _discordClient.VoiceStateUpdated += voiceRoomsHandler.OnRoomStateUpdated;
+                _discordClient.MessageReactionAdded += _roleSelectorHandler.MessageReactionAdd;
+                _discordClient.MessageReactionRemoved += _roleSelectorHandler.MessageReactionRemove;
+                _discordClient.VoiceStateUpdated += _voiceRoomsHandler.OnRoomStateUpdated;
                 
             }  
 
@@ -144,11 +147,45 @@ namespace ReworkZenithBeep
             _discordClient.GuildDeleted += GuildHandler.OnGuildUavailble;
 
 
-            await readyTaskCompletionSource.Task.ConfigureAwait(false);
-            _discordClient.Ready -= SetResult;
+            stoppingToken.Register(async () =>
+            {
+                Console.WriteLine("Shutting down...");
 
 
-            await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken).ConfigureAwait(false);
+                if (_roleSelectorHandler != null)
+                {
+                    _discordClient.MessageReactionAdded -= _roleSelectorHandler.MessageReactionAdd;
+                    _discordClient.MessageReactionRemoved -= _roleSelectorHandler.MessageReactionRemove;
+                }
+
+                if (_voiceRoomsHandler != null)
+                {
+                    _discordClient.VoiceStateUpdated -= _voiceRoomsHandler.OnRoomStateUpdated;
+                }
+
+                _discordClient.Ready -= SetResult;
+                _discordClient.GuildCreated -= GuildHandler.OnGuildAvailble;
+                _discordClient.GuildDeleted -= GuildHandler.OnGuildUavailble;
+                await _discordClient.DisconnectAsync().ConfigureAwait(false);
+                _discordClient.Dispose();
+                var db = _serviceProvider.GetRequiredService<BotContext>();
+                await db.DisposeAsync();
+
+                Console.WriteLine("Shutdown complete.");
+                
+            });
+
+
+
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken).ConfigureAwait(false);
+            }
+            catch (TaskCanceledException)
+            {
+                // Expected when the service is stopping
+            }
+            
         }
 
         
