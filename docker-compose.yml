@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3'
 
 services:
   bot:
@@ -11,7 +11,7 @@ services:
       - DOTNET_USE_POLLING_FILE_WATCHER=true
       - DOTNET_HOST_PATH=/usr/share/dotnet/dotnet
       - DOTNET_VERSION=8.0
-      - TOKEN=token
+      - TOKEN=your_bot_token_here
       - AUDIO_SERVICES=true
       - LAVALINK_PASSWORD=youshallnotpass
       - LAVALINK_ADDRESS=http://lavalink:2333
