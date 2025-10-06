@@ -19,7 +19,8 @@ Moderation features will be available in the future.
 
 # Deploy via Docker
 
-Edit the file `docker-compose.yml`
+1. Clone this repository
+2. Edit the file `docker-compose.yml`
 ```
 version: '3'
 
@@ -34,14 +35,14 @@ services:
       - DOTNET_USE_POLLING_FILE_WATCHER=true
       - DOTNET_HOST_PATH=/usr/share/dotnet/dotnet
       - DOTNET_VERSION=8.0
-      - TOKEN=your_bot_token_here // Ваш токен бота
-      - AUDIO_SERVICES=true // Включить музыкальные сервисы
+      - TOKEN=your_bot_token_here // Your bot token
+      - AUDIO_SERVICES=true // Enable music services
       - LAVALINK_PASSWORD=youshallnotpass
       - LAVALINK_ADDRESS=http://lavalink:2333
       - LAVALINK_WEBSOCKET=ws://lavalink:2333/v4/websocket
     restart: unless-stopped
 
-  db: 
+  db: // database
     image: postgres:16
     container_name: postgres-db
     restart: unless-stopped
@@ -54,7 +55,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  lavalink: // Лавалинк
+  lavalink: // lavalink service
     image: ghcr.io/lavalink-devs/lavalink:4-alpine
     container_name: lavalink
     restart: unless-stopped
@@ -72,3 +73,6 @@ networks:
 volumes:
   postgres_data:
 ```
+3. Execute `docker compose up -d` or `docker-compose up -d`
+4. That's it, the bot is running.
+   
