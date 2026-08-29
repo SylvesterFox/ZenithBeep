@@ -1,5 +1,0 @@
-{
-  "ConnectionStrings": {
-    "PostgreSqlConnection": "Host=db;Port=5432;Username=postgres;Password=zenith;Database=zenith"
-  }
-}

@@ -1,78 +1,12 @@
-## Rework of the legacy project ZenithBeep-Legacy on the DSharp library
+# ZenithBeep — DisCatSharp
 
-<div align="center" width="100%">
-<img src="https://i.imgur.com/ovLUlWm.png" alt="logo" width="128" height="128" align="center">
-</div>
+Новая реализация бота на DisCatSharp. Бизнес-логика находится в `ZenithBeep.DisCatSharp`, а доступ к данным — в отдельной библиотеке `ZenithBeep.Data`. Состояние хранится в SQLite через EF Core: лобби, временные войс-каналы и селекторы ролей переживают перезапуск.
 
-The project is still in the early stages of development!
+## Запуск
 
-A dashboard is also being developed for this project.
+1. Скопируйте `.env.example` в `.env` и задайте `TOKEN`.
+2. Запустите `dotnet run --project ZenithBeep.DisCatSharp`.
 
-# About
+Или запустите только бота: `docker compose up -d --build`. Для бота вместе с Lavalink: `docker compose -f docker-compose.yml -f docker-compose.music.yml up -d --build`, после чего в `.env` установите `AUDIO_SERVICES=true`.
 
-My personal Discord bot, which was rewritten from my old work under .NET-8
-The project started on October 27, 2022. Under the old name LunaBot, especially for the IB workshop server
-
-Briefly about the bot, at the moment it can create private voice channels, has a system for issuing roles and, of course, the bot has musical capabilities and can play music from YouTube in a voice channel.
-
-Moderation features will be available in the future.
-
-# Deploy via Docker
-
-1. Clone this repository
-2. Edit the file `docker-compose.yml`
-```
-version: '3'
-
-services:
-  bot:
-    build: .
-    container_name: discord-bot
-    depends_on:
-      - db
-    environment:
-      - DOTNET_RUNNING_IN_CONTAINER=true
-      - DOTNET_USE_POLLING_FILE_WATCHER=true
-      - DOTNET_HOST_PATH=/usr/share/dotnet/dotnet
-      - DOTNET_VERSION=8.0
-      - TOKEN=your_bot_token_here // Your bot token
-      - AUDIO_SERVICES=true // Enable music services
-      - LAVALINK_PASSWORD=youshallnotpass
-      - LAVALINK_ADDRESS=http://lavalink:2333
-      - LAVALINK_WEBSOCKET=ws://lavalink:2333/v4/websocket
-    restart: unless-stopped
-
-  db: // database
-    image: postgres:16
-    container_name: postgres-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: zenith
-      POSTGRES_DB: zenith
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  lavalink: // lavalink service
-    image: ghcr.io/lavalink-devs/lavalink:4-alpine
-    container_name: lavalink
-    restart: unless-stopped
-    volumes:
-      - ./application.yml:/opt/Lavalink/application.yml
-    expose:
-      - "2333"
-    ports:
-      - "2333:2333"
-
-networks:
-  lavalink:
-    name: lavalink
-
-volumes:
-  postgres_data:
-```
-3. Execute `docker compose up -d` or `docker-compose up -d`
-4. That's it, the bot is running.
-   
+Прокси включается только при `PROXY_ENABLED=true`; иначе `HTTP_PROXY`/`HTTPS_PROXY` игнорируются. База по умолчанию — `data/zenithbeep.db`.
