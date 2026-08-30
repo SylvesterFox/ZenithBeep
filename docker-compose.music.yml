@@ -1,0 +1,14 @@
+services:
+  bot:
+    depends_on:
+      lavalink:
+        condition: service_started
+
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4-alpine
+    container_name: zenithbeep-lavalink
+    environment:
+      _JAVA_OPTIONS: -Xmx1G
+    volumes:
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
+    restart: unless-stopped

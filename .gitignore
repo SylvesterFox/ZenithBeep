@@ -1,7 +1,5 @@
+.env
+.codex
+data/*.db
 bin/
 obj/
-.vs/
-.vscode/
-
-.env
-tasks.json

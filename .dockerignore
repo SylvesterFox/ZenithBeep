@@ -1,4 +1,12 @@
-bin/
-obj/
-.vscode/
+# Build artefacts contain host-specific NuGet asset paths and must never be copied
+# after the Docker restore layer.
+**/bin/
+**/obj/
+
+# Runtime secrets and local state are supplied through Compose volumes/env_file.
 .env
+**/*.db
+**/*.db-shm
+**/*.db-wal
+
+.git/

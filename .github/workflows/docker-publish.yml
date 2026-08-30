@@ -1,0 +1,100 @@
+name: Docker Build and Publish
+
+on:
+  push:
+    branches:
+      - updating
+      - main
+    tags:
+      - "v*"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: sylvesterfox/zenithbeep
+
+jobs:
+  docker:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set Docker tags
+        id: tags
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME}"
+
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "image=ghcr.io/sylvesterfox/zenithbeep:${VERSION}" >> "$GITHUB_OUTPUT"
+
+            echo "Building release version: ${VERSION}"
+          else
+            echo "version=updating" >> "$GITHUB_OUTPUT"
+            echo "image=ghcr.io/sylvesterfox/zenithbeep:updating" >> "$GITHUB_OUTPUT"
+
+            echo "Building development version: updating"
+          fi
+
+      - name: Build and push updating image
+        if: startsWith(github.ref, 'refs/heads/updating')
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/sylvesterfox/zenithbeep:updating
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push release image
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/sylvesterfox/zenithbeep:${{ github.ref_name }}
+            ghcr.io/sylvesterfox/zenithbeep:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build summary
+        if: always()
+        run: |
+          echo "## Docker Build" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "Release: \`${GITHUB_REF_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Image:" >> "$GITHUB_STEP_SUMMARY"
+            echo "\`ghcr.io/sylvesterfox/zenithbeep:${GITHUB_REF_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "\`ghcr.io/sylvesterfox/zenithbeep:latest\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Development build" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Image:" >> "$GITHUB_STEP_SUMMARY"
+            echo "\`ghcr.io/sylvesterfox/zenithbeep:updating\`" >> "$GITHUB_STEP_SUMMARY"
+          fi
