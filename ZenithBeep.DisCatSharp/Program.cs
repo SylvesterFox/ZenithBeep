@@ -1,6 +1,5 @@
 using DisCatSharp;
 using DisCatSharp.ApplicationCommands;
-using DisCatSharp.EventArgs;
 using DisCatSharp.Enums;
 using DisCatSharp.Lavalink;
 using DisCatSharp.Net;
@@ -44,13 +43,27 @@ client.ClientErrored += (_, e) => { logger.LogError(e.Exception, "Discord client
 
 var commands = client.UseApplicationCommands(new ApplicationCommandsConfiguration { ServiceProvider = app.Services });
 RegisterCommands(commands, options.COMMAND_GUILD_ID);
+
 if (options.AUDIO_SERVICES)
 {
     var lavalink = client.UseLavalink();
     client.Ready += async (_, _) =>
     {
-        try { await lavalink.ConnectAsync(new LavalinkConfiguration { Password = options.LAVALINK_PASSWORD, RestEndpoint = new ConnectionEndpoint { Hostname = options.LAVALINK_HOST, Port = options.LAVALINK_PORT }, SocketEndpoint = new ConnectionEndpoint { Hostname = options.LAVALINK_HOST, Port = options.LAVALINK_PORT }, EnableBuiltInQueueSystem = true }); logger.LogInformation("Lavalink connected to {Host}:{Port}", options.LAVALINK_HOST, options.LAVALINK_PORT); }
-        catch (Exception ex) { logger.LogError(ex, "Lavalink connection failed; music commands remain unavailable"); }
+        try { await lavalink.ConnectAsync(new LavalinkConfiguration { 
+            Password = options.LAVALINK_PASSWORD, 
+            RestEndpoint = new ConnectionEndpoint 
+                { 
+                    Hostname = options.LAVALINK_HOST, 
+                    Port = options.LAVALINK_PORT 
+                }, 
+            SocketEndpoint = new ConnectionEndpoint { 
+                Hostname = options.LAVALINK_HOST, 
+                Port = options.LAVALINK_PORT }, 
+            EnableBuiltInQueueSystem = true }); 
+            logger.LogInformation("Lavalink connected to {Host}:{Port}", options.LAVALINK_HOST, options.LAVALINK_PORT); }
+        catch (Exception ex) { 
+            logger.LogError(ex, "Lavalink connection failed; music commands remain unavailable"); 
+            }
     };
     logger.LogInformation("Music is enabled");
 }
@@ -63,6 +76,15 @@ await Task.Delay(Timeout.Infinite);
 static void SetProxy(string variable, string? value) => Environment.SetEnvironmentVariable(variable, string.IsNullOrWhiteSpace(value) ? null : value);
 static void RegisterCommands(ApplicationCommandsExtension extension, ulong guildId)
 {
-    if (guildId == 0) { extension.RegisterGlobalCommands<UtilityCommands>(); extension.RegisterGlobalCommands<RoomCommands>(); extension.RegisterGlobalCommands<RoleCommands>(); extension.RegisterGlobalCommands<MusicCommands>(); }
-    else { extension.RegisterGuildCommands<UtilityCommands>(guildId); extension.RegisterGuildCommands<RoomCommands>(guildId); extension.RegisterGuildCommands<RoleCommands>(guildId); extension.RegisterGuildCommands<MusicCommands>(guildId); }
+    if (guildId == 0) { 
+        extension.RegisterGlobalCommands<UtilityCommands>(); 
+        extension.RegisterGlobalCommands<RoomCommands>(); 
+        extension.RegisterGlobalCommands<RoleCommands>(); 
+        extension.RegisterGlobalCommands<MusicCommands>(); }
+    else { 
+        extension.RegisterGuildCommands<UtilityCommands>(guildId); 
+        extension.RegisterGuildCommands<RoomCommands>(guildId); 
+        extension.RegisterGuildCommands<RoleCommands>(guildId); 
+        extension.RegisterGuildCommands<MusicCommands>(guildId); 
+        }
 }
